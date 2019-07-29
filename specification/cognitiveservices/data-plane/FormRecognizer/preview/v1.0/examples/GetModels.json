@@ -4,6 +4,7 @@
     "Content-Type": "application/json",
     "Ocp-Apim-Subscription-Key": "{API key}",
     "id": "{Model Id}",
+    "op": "models",
     "body": {}
   },
   "responses": {
@@ -22,7 +23,10 @@
             "createdDateTime": "2019-04-30T21:39:41+00:00",
             "lastUpdatedDateTime": "2019-04-30T21:39:44+00:00"
           }
-        ]
+        ],
+        "summary": {
+        }
+       }
       }
     }
   }
