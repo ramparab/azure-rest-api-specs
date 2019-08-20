@@ -1,0 +1,27 @@
+{
+  "parameters": {
+    "Endpoint": "{Endpoint}",
+    "Content-Type": "application/json",
+    "Ocp-Apim-Subscription-Key": "{API key}",
+    "id": "{Operation Id}",
+    "body": {}
+  },
+  "responses": {
+    "200": {
+      "body": {
+        "operationStatus": {
+          "status": "Running",
+          "createdDateTime": "2019-05-01T10:53:21",
+          "lastUpdatedDateTime": "2019-05-01T10:54:23",
+          "percentageCompleted": "70"
+        },
+        "result": {
+          "trainBatchResult": {
+          },
+          "analyzeBatchResult": {
+          }
+        }
+      }
+    }
+  }
+}
