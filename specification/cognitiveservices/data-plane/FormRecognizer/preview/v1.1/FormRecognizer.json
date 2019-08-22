@@ -774,21 +774,35 @@
       "description": "Analyze API call result.",
       "type": "object",
       "properties": {
-        "status": {
-          "description": "Status of the analyze operation.",
-          "enum": [
-            "success",
-            "partialSuccess",
-            "failure"
-          ],
+        "version": {
+          "description": "Version of schema used for this result.",
           "type": "string"
         },
-        "pages": {
+        "recognitionResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
           "uniqueItems": false,
+          "required": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OCRResults"
+          }
+        },
+        "pageResults": {
+          "description": "Page level information extracted in the analyzed\r\ndocument.",
+          "uniqueItems": false,
+          "required": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/ExtractedPage"
+          }
+        },
+        "documentResults": {
+          "description": "Page level information extracted in the analyzed\r\ndocument.",
+          "uniqueItems": false,
+          "required": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExtractedDocument"
           }
         },
         "errors": {
