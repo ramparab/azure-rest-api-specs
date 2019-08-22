@@ -30,232 +30,11 @@
     "https"
   ],
   "paths": {
-    "/custom/train": {
+    "/custom/asyncTrain": {
       "post": {
-        "summary": "Train Model",
+        "summary": "Train Custom Model",
         "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
-        "operationId": "TrainCustomModel",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "trainRequest",
-            "in": "body",
-            "description": "Request object for training.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/TrainRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/TrainResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Train new model example": {
-            "$ref": "./examples/Train.json"
-          },
-          "Train new model example, subfolder filter options": {
-            "$ref": "./examples/TrainWithSubFolders.json"
-          }
-        }
-      }
-    },
-    "/custom/models": {
-      "get": {
-        "summary": "Get Models",
-        "description": "Get information about all trained custom models",
-        "operationId": "GetCustomModels",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ModelsResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/GetModels.json"
-          }
-        }
-      }
-    },
-    "/custom/models/{id}": {
-      "get": {
-        "summary": "Get Model",
-        "description": "Get information about a model.",
-        "operationId": "GetCustomModel",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Model identifier.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          },
-          {
-            "name": "keys",
-            "in": "query",
-            "description": "Get keys extracted by this model.",
-            "required": false
-          }          
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ModelResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/GetModel.json"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Model",
-        "description": "Delete model artifacts.",
-        "operationId": "DeleteCustomModel",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The identifier of the model to delete.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successfully removed model artifacts."
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/DeleteModel.json"
-          }
-        }
-      }
-    },
-    "/custom/models/{id}/analyze": {
-      "post": {
-        "summary": "Analyze Form",
-        "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
-        "operationId": "AnalyzeWithCustomModel",
-        "consumes": [
-          "application/pdf",
-          "image/jpeg",
-          "image/png",
-          "multipart/form-data"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Model Identifier to analyze the document with.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          },
-          {
-            "name": "keys",
-            "in": "query",
-            "description": "An optional list of known keys to extract the values for.",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": false
-          },
-          {
-            "name": "form_stream",
-            "in": "formData",
-            "description": "A pdf document or image (jpg,png) file to analyze.",
-            "required": true,
-            "type": "file"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/AnalyzeResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/Analyze.json"
-          }
-        }
-      }
-    },
-    "/custom/asyncBatchTrain": {
-      "post": {
-        "summary": "Train Batch Model",
-        "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
-        "operationId": "TrainbatchCustomModel",
+        "operationId": "AsyncTrainCustomModel",
         "consumes": [
           "application/json"
         ],
@@ -310,11 +89,82 @@
         }
       }
     },
-    "/custom/models/{id}/asyncBatchAnalyze": {
+    "/custom/asyncTrainResult/{id}": {
+      "get": {
+        "summary": "Get Train Result",
+        "description": "Retrieve train operation status and related results.",
+        "operationId": "GetTrainOperationResult",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Train operation identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncTrainResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Keys from Model": {
+            "$ref": "./examples/GetOperationResult.json"
+          }
+        }
+      }
+    },
+    "/custom/TrainOperations": {
+      "get": {
+        "summary": "List Train Operations",
+        "description": "Retrieve list of train operations.",
+        "operationId": "GetTrainOperationsList",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncTrainOperationsList"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Keys from Model": {
+            "$ref": "./examples/GetOperationResult.json"
+          }
+        }
+      }
+    },
+    "/custom/models/{id}/asyncAnalyze": {
       "post": {
-        "summary": "Batch Analyze Form",
+        "summary": "Analyze Form",
         "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
-        "operationId": "AnalyzeBatchWithCustomModel",
+        "operationId": "AsyncAnalyzeWithCustomModel",
         "consumes": [
           "application/pdf",
           "image/jpeg",
@@ -383,51 +233,11 @@
         }
       }
     },
-    "/custom/asyncBatchTrainResult/{id}": {
+    "/custom/asyncAnalyzeResult/{id}": {
       "get": {
-        "summary": "Batch Train Result",
-        "description": "Retrieve batch train operation status and related results.",
-        "operationId": "GetAsyncBatchTrainResult",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Train operation identifier.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/BatchTrainResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Keys from Model": {
-            "$ref": "./examples/GetOperationResult.json"
-          }
-        }
-      }
-    },
-    "/custom/asyncBatchAnalyzeResult/{id}": {
-      "get": {
-        "summary": "Batch Analyze Result",
-        "description": "Retrieve batch operation status and related results.",
-        "operationId": "GetBatchOperationResult",
+        "summary": "Get Analyze Result",
+        "description": "Retrieve Analyze operation status.",
+        "operationId": "GetAnalyzeOperationResult",
         "consumes": [],
         "produces": [
           "application/json"
@@ -446,7 +256,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/BatchAnalyzeResult"
+              "$ref": "#/definitions/AsyncAnalyzeResult"
             }
           },
           "default": {
@@ -462,10 +272,153 @@
           }
         }
       }
-    }
+    },
+    "/custom/AnalyzeOperations": {
+      "get": {
+        "summary": "List Analyze Operations",
+        "description": "Retrieve list of batch operations and related results.",
+        "operationId": "GetAnalyzeOperationsList",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncAnalyzeOperationsList"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Keys from Model": {
+            "$ref": "./examples/GetOperationResult.json"
+          }
+        }
+      }
+    },    
+    "/custom/models": {
+      "get": {
+        "summary": "List Custom Models",
+        "description": "Get information about all trained custom models",
+        "operationId": "GetCustomModels",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ModelsResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/GetModels.json"
+          }
+        }
+      }
+    },
+    "/custom/models/{id}": {
+      "get": {
+        "summary": "Get Custom Model",
+        "description": "Get information about a model.",
+        "operationId": "GetCustomModel",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Model identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "description": "Get keys extracted by this model.",
+            "required": false
+          }          
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ModelResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/GetModel.json"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Custom Model",
+        "description": "Delete model artifacts.",
+        "operationId": "DeleteCustomModel",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The identifier of the model to delete.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully removed model artifacts."
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/DeleteModel.json"
+          }
+        }
+      }
+    }    
   },
   "definitions": {
-    "BatchTrainResult": {
+    "AsyncTrainResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
       "properties": {
@@ -495,7 +448,7 @@
           }
 	    }
     },
-    "BatchAnalyzeResult": {
+    "AsyncAnalyzeResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
       "properties": {
@@ -572,11 +525,31 @@
         },
         "trainingDocuments": {
           "description": "List of documents used to train the model and the\r\ntrain operation error reported by each.",
+          "required": false,
           "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/FormDocumentReport"
           }
+        },
+        "trainingFields": {
+          "description": "Training Fields.",
+          "required": false,
+          "type": "object",
+          "properties":{
+            "fields": {
+              "description": "List of fields used to train the model and the\r\ntrain operation error reported by each.",
+              "uniqueItems": false,
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FormFieldsReport"
+              }   
+            }, 
+            "averageModelAccuracy":{
+              "description": "Average accuracy.",
+              "type": "string"
+            }
+          },       
         },
         "errors": {
           "description": "Errors returned during the training operation.",
@@ -605,6 +578,59 @@
         }
       }
     },
+    "AsyncOperation": {
+      "description": "Operation details.",
+      "type":"object",
+      "properties": {
+        "operationId": {
+          "description": "Get or set train operation identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-nullable": false
+        },      
+        "status": {
+          "description": "Get or set the status of operation.",
+          "enum": [
+            "created",
+            "inprogress",
+            "completed",
+            "tombestoned"
+          ],
+          "type": "string"
+        },
+        "createdDateTime": {
+          "format": "date-time",
+          "description": "Get or set the created date time of the operation.",
+          "type": "string"
+        }
+      }
+    },
+    "AsyncTrainOperationsList": {
+      "description": "Result of a train operation status.",
+      "type": "object",
+      "properties": {
+        "operations": {
+          "uniqueItems":false,
+          "type":"array",
+          "items": {
+            "$ref": "#/definitions/AsyncOperation"
+          }
+        }
+      }
+    },
+    "AsyncAnalyzeOperationsList": {
+      "description": "Result of a analyze operation status.",
+      "type": "object",
+      "properties": {
+        "operations": {
+          "uniqueItems":false,
+          "type":"array",
+          "items": {
+            "$ref": "#/definitions/AsyncOperation"
+          }
+        }
+      }
+    },    
     "ModelResult": {
       "description": "Result of a model status query operation.",
       "type": "object",
@@ -636,7 +662,8 @@
         },
         "Keys": {
           "$ref": "#/definitions/KeysResult",
-          "description": "Keys extracted by model."
+          "description": "Keys extracted by model.",
+          "required": false
         }        
       }
     },
@@ -651,6 +678,11 @@
           "items": {
             "$ref": "#/definitions/ModelResult"
           }
+        },
+        "nextLink": {
+          "description": "Next link",
+          "required": false,
+          "type": "string"
         }
       }
     },
@@ -685,6 +717,19 @@
         }
       }
     },
+    "FormFieldsReport": {
+      "type": "object",
+      "properties": {
+        "fieldName": {
+          "description": "Field Name to be extracted.",
+          "type": "string"
+        },
+        "accuracy": {
+          "description": "Accuracy of extracted label data.",
+          "type": "string"
+        }
+      }
+    },    
     "FormOperationError": {
       "description": "Error reported during an operation.",
       "type": "object",
