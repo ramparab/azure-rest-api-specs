@@ -1,0 +1,409 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0-preview",
+    "title": "Form Recognizer Client",
+    "description": "Extracts information from forms and images into structured data based on a model created by a set of representative training forms."
+  },
+  "securityDefinitions": {
+    "apim_key": {
+      "type": "apiKey",
+      "name": "Ocp-Apim-Subscription-Key",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "apim_key": []
+    }
+  ],
+  "x-ms-parameterized-host": {
+    "hostTemplate": "{Endpoint}/formrecognizer/v1.0-preview",
+    "useSchemePrefix": false,
+    "parameters": [
+      {
+        "$ref": "#/parameters/Endpoint"
+      }
+    ]
+  },
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/prebuilt/receipt/asyncBatchAnalyze": {
+      "post": {
+        "description": "Extract field text and semantic values from a given receipt document.",
+        "operationId": "AnalyzeReceipt",
+        "summary": "Analyze Receipt",
+        "parameters": [
+          {
+            "$ref": "#/parameters/ImageUrl"
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "202": {
+            "description": "The service has accepted the request for processing.  The client can query the operation status and retrieve the analysis result using the 'Operation-Location' URL header specified in the response. Note that the 'Operation-Location' URL expires in 48 hours.",
+            "headers": {
+              "Operation-Location": {
+                "type": "string",
+                "description": "URL to query and retrieve the analysis result. This URL expires in 48 hours."
+              }
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Successful 'Analyze Receipt' request": {
+            "$ref": "./examples/SuccessfulAnalyzeReceiptWithUrl.json"
+          }
+        }
+      }
+    },
+    "/prebuilt/receipt/operations/{operationId}": {
+      "get": {
+        "description": "Query the status and retrieve the result of an 'Analyze Receipt' operation. The URL to this interface can be obtained from the 'Operation-Location' header in the 'Analyze Receipt' response.",
+        "operationId": "GetReceiptResult",
+        "summary": "Get Receipt Result",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "description": "Id returned by the 'Analyze Receipt' operation.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the operation status along with the recognition and understanding results when succeeded.",
+            "schema": {
+              "$ref": "#/definitions/analyzeReceiptResult"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Successful 'Get Receipt Result' request": {
+            "$ref": "./examples/SuccessfulGetReceiptResult.json"
+          }
+        }
+      }
+    }
+  },
+  "x-ms-paths": {
+    "/prebuilt/receipt/asyncBatchAnalyze?overload=stream": {
+      "post": {
+        "description": "Extract field text and semantic values from a given receipt document.",
+        "operationId": "AnalyzeReceiptInStream",
+        "summary": "Analyze Receipt",
+        "parameters": [
+          {
+            "$ref": "#/parameters/ImageStream"
+          }
+        ],
+        "consumes": [
+          "application/octet-stream"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "202": {
+            "description": "The service has accepted the request for processing.  The client can query the operation status and retrieve the analysis result using the 'Operation-Location' URL header specified in the response. Note that the 'Operation-Location' URL expires in 48 hours.",
+            "headers": {
+              "Operation-Location": {
+                "type": "string",
+                "description": "URL to query and retrieve the analysis result. This URL expires in 48 hours."
+              }
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Successful 'Analyze Receipt' request": {
+            "$ref": "./examples/SuccessfulAnalyzeReceiptWithStream.json"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "OperationStatus": {
+      "type": "string",
+      "description": "Analysis operation status: NotStarted, Running, Failed, Succeeded.",
+      "enum": [
+        "NotStarted",
+        "Running",
+        "Failed",
+        "Succeeded"
+      ],
+      "x-ms-enum": {
+        "name": "OperationStatusCodes",
+        "modelAsString": false
+      },
+      "x-nullable": false
+    },
+    "TextRecognitionResult": {
+      "description": "Text recognition result from a page in the input document.",
+      "type": "object",
+      "required": [
+        "lines"
+      ],
+      "properties": {
+        "page": {
+          "description": "The 1-based page number of the recognition result.",
+          "type": "integer"
+        },
+        "clockwiseOrientation": {
+          "description": "The orientation of the image in clockwise direction, measured in degrees between [0, 360).",
+          "type": "number"
+        },
+        "width": {
+          "description": "The width of the image/PDF in pixels/inches, respectively.",
+          "type": "number"
+        },
+        "height": {
+          "description": "The height of the image/PDF in pixels/inches, respectively.",
+          "type": "number"
+        },
+        "unit": {
+          "description": "The unit used by the width, height and boundingBox properties. For images, the unit is \"pixel\". For PDF, the unit is \"inch\".",
+          "type": "string",
+          "enum": [
+            "pixel",
+            "inch"
+          ],
+          "x-ms-enum": {
+            "name": "TextRecognitionResultDimensionUnit",
+            "modelAsString": false
+          },
+          "x-nullable": true
+        },
+        "lines": {
+          "description": "A list of recognized text lines. The maximum number of lines returned is 300 per page.\n\nThe lines are sorted top to bottom, left to right, although in certain cases proximity is treated with higher priority. As the sorting order depends on the detected text, it may change across images and OCR version updates. Thus, business logic should be built upon the actual line location instead of order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Line"
+          }
+        }
+      }
+    },
+    "Line": {
+      "description": "An object representing a recognized text line.",
+      "type": "object",
+      "properties": {
+        "boundingBox": {
+          "description": "Bounding box of a recognized line.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "text": {
+          "description": "The text content of the line.",
+          "type": "string"
+        },
+        "words": {
+          "description": "List of words in the text line.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Word"
+          }
+        }
+      }
+    },
+    "Word": {
+      "description": "An object representing a recognized word.",
+      "type": "object",
+      "required": [
+        "boundingBox",
+        "text"
+      ],
+      "properties": {
+        "boundingBox": {
+          "description": "Bounding box of a recognized word.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "text": {
+          "description": "The text content of the word.",
+          "type": "string"
+        },
+        "confidence": {
+          "description": "Qualitative confidence measure.",
+          "type": "string",
+          "enum": [
+            "High",
+            "Low"
+          ],
+          "x-ms-enum": {
+            "name": "TextRecognitionResultConfidenceClass",
+            "modelAsString": false
+          },
+          "x-nullable": true
+        }
+      }
+    },
+    "BoundingBox": {
+      "description": "Quadrangle bounding box, with coordinates specified relative to the original image. The eight numbers represent the four points, clockwise from the top-left corner. For image, the (x, y) coordinates are measured in pixels. For PDF, the (x, y) coordinates are measured in inches.",
+      "type": "array",
+      "items": {
+        "type": "number",
+        "x-nullable": false
+      }
+    },
+    "analyzeReceiptResult": {
+      "type": "object",
+      "description": "Result of the 'Analyze Receipt' operation.",
+      "properties": {
+        "status": {
+          "description": "Status of the analysis operation.",
+          "$ref": "#/definitions/OperationStatus"
+        },
+        "recognitionResults": {
+          "description": "An array of objects, each representing the OCR result for a page in the input document.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TextRecognitionResult"
+          }
+        },
+        "understandingResults": {
+          "description": "An array of objects, each representing a receipt detected in the input document.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/understandingResult"
+          }
+        }
+      }
+    },
+    "understandingResult": {
+      "description": "A set of extracted fields corresponding to a semantic object, such as a receipt, in the input document.",
+      "properties": {
+        "pages": {
+          "description": "List of pages where the receipt is found.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "x-nullable": false
+          }
+        },
+        "fields": {
+          "description": "Dictionary of analyzed field values. If a field is not detected, the corresponding field value will be set to null.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/fieldValue"
+          }
+        }
+      }
+    },
+    "elementReference": {
+      "description": "Reference to an OCR word element.",
+      "properties": {
+        "$ref": {
+          "description": "JSON pointer to an OCR word element. For example, \"#/recognitionResults/0/lines/1/words/2\" refers to 3rd word in the 2nd line of the 1st page in the document.",
+          "type": "string"
+        }
+      }
+    },
+    "fieldValue": {
+      "description": "Base class representing a recognized field value.",
+      "type": "object",
+      "discriminator": "valueType",
+      "required": [
+        "valueType"
+      ],
+      "properties": {
+        "valueType": {
+          "description": "Discriminator for derived types.",
+          "type": "string"
+        },
+        "text": {
+          "description": "Extracted text content of the recognized field.",
+          "type": "string"
+        },
+        "elements": {
+          "description": "List of references to OCR words comprising the recognized field value.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/elementReference"
+          }
+        }
+      }
+    },
+    "stringValue": {
+      "description": "Recognized string field value.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/fieldValue"
+        }
+      ],
+      "properties": {
+        "value": {
+          "description": "String value of the recognized field.",
+          "type": "string"
+        }
+      }
+    },
+    "numberValue": {
+      "description": "Recognized numeric field value.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/fieldValue"
+        }
+      ],
+      "properties": {
+        "value": {
+          "description": "Numeric value of the recognized field.",
+          "type": "number"
+        }
+      }
+    },
+    "ImageUrl": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "description": "Publicly reachable URL of an image.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "Endpoint": {
+      "name": "Endpoint",
+      "description": "Supported Cognitive Services endpoints (protocol and hostname, for example: https://westus2.api.cognitive.microsoft.com).",
+      "x-ms-parameter-location": "client",
+      "required": true,
+      "type": "string",
+      "in": "path",
+      "x-ms-skip-url-encoding": true
+    },
+    "ImageUrl": {
+      "name": "ImageUrl",
+      "in": "body",
+      "required": true,
+      "x-ms-parameter-location": "method",
+      "x-ms-client-flatten": true,
+      "description": "A JSON document with a URL pointing to the image that is to be analyzed.",
+      "schema": {
+        "$ref": "#/definitions/ImageUrl"
+      }
+    },
+    "ImageStream": {
+      "name": "Image",
+      "in": "body",
+      "required": true,
+      "x-ms-parameter-location": "method",
+      "description": "An image stream.",
+      "schema": {
+        "type": "object",
+        "format": "file"
+      }
+    }
+  }
+}
