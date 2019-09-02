@@ -1,4 +1,4 @@
-AADDS
+﻿AADDS
 aadiam
 AATP
 abcxyz
@@ -207,6 +207,7 @@ browsable
 bruceper
 Bsaling
 BYOC
+BYOK
 BYOL
 BYOS
 bzip
@@ -242,6 +243,7 @@ CIDR
 CIDRs
 CIFS
 ciphertext
+clfs
 Clickthrough
 clientaccesspolicy
 clienterror
@@ -257,6 +259,7 @@ Cloudamize
 cloudapp
 cloudsimple
 clustermonitoring
+Cmdkey
 cmdlet
 CMMI
 CNAME
@@ -1166,6 +1169,7 @@ retargeted
 retargeting
 Retriable
 Retryable
+Revalidates
 Revertable
 REVOKEACE
 rgname
@@ -1325,6 +1329,7 @@ storageaccounts
 storagedatalake
 storageimportexport
 storagesync
+storagetarget
 storageuri
 storsimple
 streamanalytics
