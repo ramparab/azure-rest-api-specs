@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.1-preview",
+    "version": "2.0-preview",
     "title": "Form Recognizer Client",
     "description": "Extracts information from forms and images into structured data based on a model created by a set of representative training forms."
   },
@@ -18,7 +18,7 @@
     }
   ],
   "x-ms-parameterized-host": {
-    "hostTemplate": "{Endpoint}/formrecognizer/v1.1-preview",
+    "hostTemplate": "{Endpoint}/formrecognizer/v2.0-preview",
     "useSchemePrefix": false,
     "parameters": [
       {
@@ -784,7 +784,7 @@
           "required": false,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/OCRResults"
+            "$ref": "#/definitions/RecognitionResult"
           }
         },
         "pageResults": {
@@ -793,7 +793,7 @@
           "required": false,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ExtractedPage"
+            "$ref": "#/definitions/PageResult"
           }
         },
         "documentResults": {
@@ -946,7 +946,210 @@
           }
         }
       }
-    }
+    },
+    "RecognitionResult": {
+      "description": "Text extracted from a page in the input document.",
+      "type": "object",
+      "required": [
+        "page", "angle", "width", "height", "unit", "language"
+      ],
+      "properties": {
+        "page": {
+          "description": "The 1-based page number in the input document.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "angle": {
+          "description": "The general orientation of the text in clockwise direction, measured in degrees between [0, 360).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "exclusiveMaximum": true
+        },
+        "width": {
+          "description": "The width of the image/PDF in pixels/inches, respectively.",
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "description": "The height of the image/PDF in pixels/inches, respectively.",
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "description": "The unit used by the width, height and boundingBox properties. For images, the unit is \"pixel\". For PDF, the unit is \"inch\".",
+          "type": "string",
+          "enum": [
+            "pixel",
+            "inch"
+          ],
+          "x-ms-enum": {
+            "name": "LengthUnit",
+            "modelAsString": false
+          },
+          "x-nullable": false
+        },
+        "language": {
+          "description": "The detected language on the page overall.",
+          "$ref": "#/definitions/Language"
+        },
+        "lines": {
+          "description": "A list of recognized text lines. The maximum number of lines returned is 300 per page.\n\nThe lines are sorted top to bottom, left to right, although in certain cases proximity is treated with higher priority. As the sorting order depends on the detected text, it may change across images and OCR version updates. Thus, business logic should be built upon the actual line location instead of order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TextLine"
+          }
+        }
+      }
+    },
+    "Language": {
+      "description": "Language code",
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ],
+      "x-ms-enum": {
+        "name": "Language",
+        "modelAsString": true
+      },
+      "x-nullable": false
+    },
+    "TextLine": {
+      "description": "An object representing an extracted text line.",
+      "type": "object",
+      "required": [
+        "text", "boundingBox", "words"
+      ],
+      "properties": {
+        "text": {
+          "description": "The text content of the line.",
+          "type": "string"
+        },
+        "boundingBox": {
+          "description": "Bounding box of an extracted line.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "language": {
+          "description": "The detected language of this line.",
+          "$ref": "#/definitions/Language"
+        },
+        "words": {
+          "description": "List of words in the text line.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TextWord"
+          }
+        }
+      }
+    },
+    "TextWord": {
+      "description": "An object representing a word.",
+      "type": "object",
+      "required": [
+        "boundingBox",
+        "text",
+        "confidence"
+      ],
+      "properties": {
+        "text": {
+          "description": "The text content of the word.",
+          "type": "string"
+        },
+        "boundingBox": {
+          "description": "Bounding box of an extracted word.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "confidence": {
+          "description": "Qualitative confidence measure.",
+          "$ref": "#/definitions/Confidence"
+        }
+      }
+    },
+    "BoundingBox": {
+      "description": "Quadrangle bounding box, with coordinates specified relative to the original image. The eight numbers represent the four points, clockwise from the top-left corner. For image, the (x, y) coordinates are measured in pixels. For PDF, the (x, y) coordinates are measured in inches.",
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "number",
+        "x-nullable": false
+      }
+    },
+    "PageResult": {
+      "description": "Extraction information of a single page in a document.",
+      "type": "object",
+      "required": [
+        "page", "keyValuePairs", "tables"
+      ],
+      "properties": {
+        "page": {
+          "description": "Page number.",
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1
+        },
+        "clusterId": {
+          "description": "Cluster identifier.",
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0
+        },
+        "keyValuePairs": {
+          "description": "List of key-value pairs extracted from the page.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/KeyValuePair"
+          }
+        },
+        "tables": {
+          "description": "List of data tables extracted from the page.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataTable"
+          }
+        }
+      }
+    },
+    "DocumentResult": {
+      "description": "A set of extracted fields corresponding to a document, such as a receipt, in the input document.",
+      "required": [
+        "pageRange",
+        "fields"
+      ],
+      "properties": {
+        "docType": {
+          "description": "Document type.",
+          "type": "string"
+        },
+        "pageRange": {
+          "description": "First and last page number where the document is found.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "x-nullable": false
+          }
+        },
+        "fields": {
+          "description": "Dictionary of analyzed field values. If a field is not detected, the corresponding field value will be set to null.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/FieldValue"
+          }
+        }
+      }
+    },
+    "Confidence": {
+      "description": "Confidence value.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }        
   },
   "parameters": {
     "Endpoint": {
