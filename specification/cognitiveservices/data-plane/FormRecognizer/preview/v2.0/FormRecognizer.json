@@ -47,19 +47,6 @@
             "schema": {
               "$ref": "#/definitions/TrainRequest"
             }
-          },
-          {
-            "name": "labelFile",
-            "in": "query",
-            "description": "Specify if label file should be used for training.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "yes",
-                "no"
-              ]
-            }
           }
         ],
         "responses": {
@@ -166,10 +153,7 @@
         "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
         "operationId": "AsyncAnalyzeWithCustomModel",
         "consumes": [
-          "application/pdf",
-          "image/jpeg",
-          "image/png",
-          "multipart/form-data"
+          "application/json"
         ],
         "produces": [
           "application/json"
@@ -184,29 +168,13 @@
             "format": "uuid"
           },
           {
-            "name": "includeOcrResults",
-            "in": "query",
-            "description": "Include OCR results in results.",
-            "required": false,
-            "type": "boolean"
-          },          
-          {
-            "name": "keys",
-            "in": "query",
-            "description": "An optional list of known keys to extract the values for.",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": false
-          },
-          {
-            "name": "form_stream",
-            "in": "formData",
-            "description": "A pdf document or image (jpg,png) file to analyze.",
+            "name": "analyzeRequest",
+            "in": "body",
+            "description": "Request object for scoring form.",
             "required": true,
-            "type": "file"
+            "schema": {
+              "$ref": "#/definitions/AnalyzeRequest"
+            }
           }
         ],
         "responses": {
@@ -246,7 +214,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "Batch Analyze operation identifier.",
+            "description": "Analyze operation identifier.",
             "required": true,
             "type": "string",
             "format": "uuid"
@@ -309,16 +277,18 @@
         "summary": "List Custom Models",
         "description": "Get information about all trained custom models",
         "operationId": "GetCustomModels",
-        "consumes": [],
+        "consumes": [
+        ],
         "produces": [
           "application/json"
         ],
-        "parameters": [],
+        "parameters": [
+        ],
         "responses": {
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/ModelsResult"
+              "$ref": "#/definitions/ModelsResults"
             }
           },
           "default": {
@@ -356,8 +326,9 @@
           {
             "name": "keys",
             "in": "query",
-            "description": "Get keys extracted by this model.",
-            "required": false
+            "description": "An optional parameter to list extracted keys.",
+            "required": false,
+            "type": "boolean"
           }          
         ],
         "responses": {
@@ -381,7 +352,7 @@
         }
       },
       "delete": {
-        "summary": "Delete Custom Model",
+        "summary": "Delete Model",
         "description": "Delete model artifacts.",
         "operationId": "DeleteCustomModel",
         "consumes": [],
@@ -472,7 +443,7 @@
             "description": "Get last updated date time of this batch operation.",
             "type": "string"
           },
-          "analyzeBatchResult": {  
+          "analyzeResult": {  
             "description": "Analyze batch operation result.",
             "$ref": "#/definitions/AnalyzeResult"
           }
@@ -494,9 +465,46 @@
         "sourceFilter": {
           "$ref": "#/definitions/TrainSourceFilter",
           "description": "Get or set filter to further search the\r\nsource path for content."
+        },
+        "labelFile": {
+          "description": "Specify if label file should be used for training.",
+          "type":"boolean"
         }
       }
     },
+    "AnalyzeRequest": {
+      "description": "Contract to initiate a analyze request.",
+      "required": [
+        "source"
+      ],
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Get or set source path to file to score.",
+          "maxLength": 2048,
+          "minLength": 0,
+          "type": "string"
+        },
+        "sourceData": {
+          "description": "Get or set base64 encoded pdf document or image (jpg,png) file to analyze (Max: 50MB).",
+          "maxLength": 52428800,
+          "minLength": 0,
+          "type": "string"
+        },
+        "includeTextResults": {
+          "description": "Get or set specifier to retrieve text results.",
+          "type": "boolean"
+        },
+        "keys": {
+          "description": "An optional list of known keys to extract the values for.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": false       
+        }
+      }
+    },    
     "TrainSourceFilter": {
       "description": "Filters to be applied when traversing a data source.",
       "type": "object",
@@ -525,7 +533,6 @@
         },
         "trainingDocuments": {
           "description": "List of documents used to train the model and the\r\ntrain operation error reported by each.",
-          "required": false,
           "uniqueItems": false,
           "type": "array",
           "items": {
@@ -534,7 +541,6 @@
         },
         "trainingFields": {
           "description": "Training Fields.",
-          "required": false,
           "type": "object",
           "properties":{
             "fields": {
@@ -549,7 +555,7 @@
               "description": "Average accuracy.",
               "type": "string"
             }
-          },       
+          }
         },
         "errors": {
           "description": "Errors returned during the training operation.",
@@ -557,23 +563,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/FormOperationError"
-          }
-        }
-      }
-    },
-    "KeysResult": {
-      "description": "Keys extracted by a model.",
-      "type": "object",
-      "properties": {
-        "clusters": {
-          "description": "Object mapping ClusterIds to Key lists.",
-          "type": "object",
-          "additionalProperties": {
-            "uniqueItems": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       }
@@ -630,6 +619,24 @@
           }
         }
       }
+    },
+    "ModelsResults": {
+      "description": "Result of query operation to fetch multiple models.",
+      "type": "object",
+      "properties": {
+        "models": {
+          "description": "Collection of models.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModelResult"
+          }
+        },
+        "nextLink": {
+          "description": "Next link",
+          "type": "string"
+        }
+      }
     },    
     "ModelResult": {
       "description": "Result of a model status query operation.",
@@ -662,27 +669,24 @@
         },
         "Keys": {
           "$ref": "#/definitions/KeysResult",
-          "description": "Keys extracted by model.",
-          "required": false
+          "description": "Keys extracted by model."
         }        
       }
     },
-    "ModelsResult": {
-      "description": "Result of query operation to fetch multiple models.",
+    "KeysResult": {
+      "description": "Keys extracted by a model.",
       "type": "object",
       "properties": {
-        "models": {
-          "description": "Collection of models.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ModelResult"
+        "clusters": {
+          "description": "Object mapping ClusterIds to Key lists.",
+          "type": "object",
+          "additionalProperties": {
+            "uniqueItems": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
-        },
-        "nextLink": {
-          "description": "Next link",
-          "required": false,
-          "type": "string"
         }
       }
     },
@@ -781,7 +785,6 @@
         "recognitionResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
           "uniqueItems": false,
-          "required": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/RecognitionResult"
@@ -790,7 +793,6 @@
         "pageResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
           "uniqueItems": false,
-          "required": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/PageResult"
@@ -799,10 +801,9 @@
         "documentResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
           "uniqueItems": false,
-          "required": false,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ExtractedDocument"
+            "$ref": "#/definitions/DocumentResult"
           }
         },
         "errors": {
@@ -811,138 +812,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/FormOperationError"
-          }
-        }
-      }
-    },
-    "ExtractedPage": {
-      "description": "Extraction information of a single page in a\r\nwith a document.",
-      "type": "object",
-      "properties": {
-        "number": {
-          "format": "int32",
-          "description": "Page number.",
-          "type": "integer"
-        },
-        "height": {
-          "format": "int32",
-          "description": "Height of the page (in pixels).",
-          "type": "integer"
-        },
-        "width": {
-          "format": "int32",
-          "description": "Width of the page (in pixels).",
-          "type": "integer"
-        },
-        "clusterId": {
-          "format": "int32",
-          "description": "Cluster identifier.",
-          "type": "integer"
-        },
-        "keyValuePairs": {
-          "description": "List of Key-Value pairs extracted from the page.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedKeyValuePair"
-          }
-        },
-        "tables": {
-          "description": "List of Tables and their information extracted from the page.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedTable"
-          }
-        }
-      }
-    },
-    "ExtractedKeyValuePair": {
-      "description": "Representation of a key-value pair as a list\r\nof key and value tokens.",
-      "type": "object",
-      "properties": {
-        "key": {
-          "description": "List of tokens for the extracted key in a key-value pair.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedToken"
-          }
-        },
-        "value": {
-          "description": "List of tokens for the extracted value in a key-value pair.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedToken"
-          }
-        }
-      }
-    },
-    "ExtractedTable": {
-      "description": "Extraction information about a table\r\ncontained in a page.",
-      "type": "object",
-      "properties": {
-        "id": {
-          "description": "Table identifier.",
-          "type": "string"
-        },
-        "columns": {
-          "description": "List of columns contained in the table.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedTableColumn"
-          }
-        }
-      }
-    },
-    "ExtractedToken": {
-      "description": "Canonical representation of single extracted text.",
-      "type": "object",
-      "properties": {
-        "text": {
-          "description": "String value of the extracted text.",
-          "type": "string"
-        },
-        "boundingBox": {
-          "description": "Bounding box of the extracted text. Represents the\r\nlocation of the extracted text as a pair of\r\ncartesian co-ordinates. The co-ordinate pairs are arranged by\r\ntop-left, top-right, bottom-right and bottom-left endpoints box\r\nwith origin reference from the bottom-left of the page.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "format": "double",
-            "type": "number"
-          }
-        },
-        "confidence": {
-          "format": "double",
-          "description": "A measure of accuracy of the extracted text.",
-          "type": "number"
-        }
-      }
-    },
-    "ExtractedTableColumn": {
-      "description": "Extraction information of a column in\r\na table.",
-      "type": "object",
-      "properties": {
-        "header": {
-          "description": "List of extracted tokens for the column header.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtractedToken"
-          }
-        },
-        "entries": {
-          "description": "Extracted text for each cell of a column. Each cell\r\nin the column can have a list of one or more tokens.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "uniqueItems": false,
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/ExtractedToken"
-            }
           }
         }
       }
@@ -1001,7 +870,7 @@
           }
         }
       }
-    },
+    },    
     "Language": {
       "description": "Language code",
       "type": "string",
@@ -1113,6 +982,139 @@
         }
       }
     },
+    "KeyValuePair": {
+      "description": "Representation of a key-value pair as a list of key and value tokens.",
+      "type": "object",
+      "required": [
+        "key", "value", "confidence"
+      ],
+      "properties": {
+        "key": {
+          "description": "Information about the extracted key in a key-value pair.",
+          "$ref": "#/definitions/KeyValueElement"
+        },
+        "value": {
+          "description": "Information about the extracted value in a key-value pair.",
+          "$ref": "#/definitions/KeyValueElement"
+        },
+        "confidence": {
+          "description": "Qualitative confidence measure.",
+          "$ref": "#/definitions/Confidence"
+        }
+      }
+    },
+    "KeyValueElement": {
+      "description": "Information about the extracted key or value in a key-value pair.",
+      "type": "object",
+      "required": [
+        "text", "boundingBox"
+      ],
+      "properties": {
+        "text": {
+          "description": "The text content of the key or value.",
+          "type": "string"
+        },
+        "boundingBox": {
+          "description": "Bounding box of the key or value.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "elements": {
+          "description": "List of element references.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ElementReference"
+          }
+        }
+      }
+    },
+    "ElementReference": {
+      "description": "Reference to an extracted line or word.",
+      "type": "string"
+    },
+    "DataTable": {
+      "description": "Extraction information about a table contained in a page.",
+      "type": "object",
+      "required": [
+        "rows", "columns", "cells"
+      ],
+      "properties": {
+        "rows": {
+          "description": "Number of rows.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "columns": {
+          "description": "Number of columns.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "cells": {
+          "description": "List of cells contained in the table.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataTableCell"
+          }
+        }
+      }
+    },
+    "DataTableCell": {
+      "description": "Information about the extracted cell in a table.",
+      "type": "object",
+      "required": [
+        "rowIndex", "columnIndex", "text", "boundingBox", "confidence"
+      ],
+      "properties": {
+        "rowIndex": {
+          "description": "Row index of the cell.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "columnIndex": {
+          "description": "Column index of the cel.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "rowSpan": {
+          "description": "Number of rows spanned by this cell.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "columnSpan": {
+          "description": "Number of columns spanned by this cell.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "text": {
+          "description": "The text content of the cell.",
+          "type": "string"
+        },
+        "boundingBox": {
+          "description": "Bounding box of the cell.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "confidence": {
+          "description": "Qualitative confidence measure.",
+          "$ref": "#/definitions/Confidence"
+        },
+        "elements": {
+          "description": "List element references.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ElementReference"
+          }
+        },
+        "isHeader": {
+          "description": "Is the current cell a header cell?",
+          "type": "boolean"
+        },
+        "isFooter": {
+          "description": "Is the current cell a footer cell?",
+          "type": "boolean"
+        }
+      }
+    },
     "DocumentResult": {
       "description": "A set of extracted fields corresponding to a document, such as a receipt, in the input document.",
       "required": [
@@ -1143,6 +1145,82 @@
           }
         }
       }
+    },
+    "FieldValue": {
+      "description": "Recognized field value.",
+      "type": "object",
+      "required": [
+        "type", "text", "confidence"
+      ],
+      "properties": {
+        "type": {
+          "description": "Type of field value.",
+          "$ref": "#/definitions/FieldValueType"
+        },
+        "valueString": {
+          "description": "String value.",
+          "type": "string"
+        },
+        "valueDate": {
+          "description": "Date value.",
+          "type": "string",
+          "format": "date"
+        },
+        "valueTime": {
+          "description": "Time value.",
+          "type": "string",
+          "format": "time"
+        },
+        "valuePhoneNumber": {
+          "description": "Phone number value.",
+          "type": "string",
+          "format": "phone-number"
+        },
+        "valueNumber": {
+          "description": "Floating point value.",
+          "type": "number"
+        },
+        "valueInteger": {
+          "description": "Integer value.",
+          "type": "integer"
+        },
+        "text": {
+          "description": "Extracted text content of the recognized field.",
+          "type": "string"
+        },
+        "boundingBox": {
+          "description": "Bounding box of the field text, if appropriate.",
+          "$ref": "#/definitions/BoundingBox"
+        },
+        "confidence": {
+          "description": "Qualitative confidence measure.",
+          "$ref": "#/definitions/Confidence"
+        },
+        "elements": {
+          "description": "List element references.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ElementReference"
+          }
+        }
+      }
+    },
+    "FieldValueType": {
+      "type": "string",
+      "description": "Type of field value.",
+      "enum": [
+        "string",
+        "date",
+        "time",
+        "phoneNumber",
+        "number",
+        "integer"
+      ],
+      "x-ms-enum": {
+        "name": "FieldValueType",
+        "modelAsString": false
+      },
+      "x-nullable": false
     },
     "Confidence": {
       "description": "Confidence value.",
