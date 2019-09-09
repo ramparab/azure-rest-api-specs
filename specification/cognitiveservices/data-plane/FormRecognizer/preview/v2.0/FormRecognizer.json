@@ -162,7 +162,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "Model Identifier to analyze the document with.",
+            "description": "Model identifier to analyze the document with.",
             "required": true,
             "type": "string",
             "format": "uuid"
@@ -271,19 +271,17 @@
           }
         }
       }
-    },    
+    },
     "/custom/models": {
       "get": {
         "summary": "List Custom Models",
         "description": "Get information about all trained custom models",
         "operationId": "GetCustomModels",
-        "consumes": [
-        ],
+        "consumes": [],
         "produces": [
           "application/json"
         ],
-        "parameters": [
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -329,7 +327,7 @@
             "description": "An optional parameter to list extracted keys.",
             "required": false,
             "type": "boolean"
-          }          
+          }
         ],
         "responses": {
           "200": {
@@ -467,7 +465,7 @@
           }
         }
       }
-    }        
+    }
   },
   "definitions": {
     "OperationStatus": {
@@ -485,7 +483,7 @@
         "modelAsString": false
       },
       "x-nullable": false
-    },    
+    },
     "AsyncTrainResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
@@ -493,7 +491,7 @@
         "status",
         "createdDateTime",
         "lastUpdatedDateTime"
-      ],      
+      ],
       "properties": {
         "status": {
           "description": "Get status of batch operation.",
@@ -502,27 +500,24 @@
         "createdDateTime": {
           "format": "date-time",
           "description": "Get date time the batch operation was submitted.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
         "lastUpdatedDateTime": {
           "format": "date-time",
           "description": "Get last updated date time of this batch operation.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
-        "trainBatchResult": { 
+        "trainResult": {
           "description": "Train batch operation result.",
           "$ref": "#/definitions/TrainResult"
         }
-	    }
+      }
     },
     "AsyncAnalyzeResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
-      "required": [
-        "status",
-        "createdDateTime",
-        "lastUpdatedDateTime"
-      ],      
       "properties": {
         "status": {
           "description": "Get status of batch operation.",
@@ -531,18 +526,20 @@
         "createdDateTime": {
           "format": "date-time",
           "description": "Get date time the batch operation was submitted.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
         "lastUpdatedDateTime": {
           "format": "date-time",
           "description": "Get last updated date time of this batch operation.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
-        "analyzeResult": {  
+        "analyzeResult": {
           "description": "Analyze batch operation result.",
           "$ref": "#/definitions/AnalyzeResult"
         }
-       }
+      }
     },
     "TrainRequest": {
       "description": "Contract to initiate a train request.",
@@ -561,9 +558,9 @@
           "$ref": "#/definitions/TrainSourceFilter",
           "description": "Get or set filter to further search the\r\nsource path for content."
         },
-        "labelFile": {
+        "useLabelFile": {
           "description": "Specify if label file should be used for training.",
-          "type":"boolean",
+          "type": "boolean",
           "default": false,
           "x-nullable": false          
         }
@@ -585,25 +582,27 @@
           "minLength": 0,
           "type": "string"
         },
-        "includeTextResults": {
+        "includeTextDetails": {
           "description": "Get or set specifier to retrieve text results.",
           "type": "boolean",
           "default": false,
-          "x-nullable": false          
+          "x-nullable": false
         },
         "keys": {
           "description": "An optional list of known keys to extract the values for.",
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "uniqueItems": false       
+          }
         }
       }
-    },    
+    },
     "TrainSourceFilter": {
       "description": "Filters to be applied when traversing a data source.",
       "type": "object",
+      "required": [
+        "prefix"
+      ],
       "properties": {
         "prefix": {
           "description": "A case-sensitive prefix string to filter content\r\nunder the source location. For e.g., when using a Azure Blob\r\nUri use the prefix to restrict subfolders for content.",
@@ -627,7 +626,7 @@
         "trainingDocuments",
         "trainingFields",
         "errors"
-      ],      
+      ],
       "properties": {
         "modelId": {
           "description": "Identifier of the model.",
@@ -649,7 +648,6 @@
         },
         "errors": {
           "description": "Errors returned during the training operation.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/FormOperationError"
@@ -677,7 +675,7 @@
           "type": "number"
         }
       }
-    },    
+    },
     "AsyncOperation": {
       "description": "Operation details.",
       "type": "object",
@@ -721,21 +719,23 @@
     "ModelsResults": {
       "description": "Result of query operation to fetch multiple models.",
       "type": "object",
+      "required": [
+        "models"
+      ],
       "properties": {
         "models": {
           "description": "Collection of models.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/ModelResult"
           }
         },
-        "nextLink": {
+        "@nextLink": {
           "description": "Next link",
           "type": "string"
         }
       }
-    },    
+    },
     "ModelResult": {
       "description": "Result of a model status query operation.",
       "type": "object",
@@ -745,7 +745,7 @@
         "createdDateTime",
         "lastUpdatedDateTime",
         "keys"
-      ],      
+      ],
       "properties": {
         "modelId": {
           "description": "Get or set model identifier.",
@@ -765,7 +765,7 @@
             "name": "ModelStatus",
             "modelAsString": false
           },
-          "x-nullable": false          
+          "x-nullable": false
         },
         "createdDateTime": {
           "format": "date-time",
@@ -779,10 +779,10 @@
           "type": "string",
           "x-nullable": false
         },
-        "Keys": {
+        "keys": {
           "$ref": "#/definitions/KeysResult",
           "description": "Keys extracted by model."
-        }        
+        }
       }
     },
     "KeysResult": {
@@ -790,13 +790,12 @@
       "type": "object",
       "required": [
         "clusters"
-      ],      
+      ],
       "properties": {
         "clusters": {
           "description": "Object mapping ClusterIds to Key lists.",
           "type": "object",
           "additionalProperties": {
-            "uniqueItems": false,
             "type": "array",
             "items": {
               "type": "string"
@@ -812,7 +811,7 @@
         "pages",
         "errors",
         "status"
-      ],      
+      ],
       "properties": {
         "documentName": {
           "description": "Reference to the data that the report is for.",
@@ -821,11 +820,11 @@
         "pages": {
           "format": "int32",
           "description": "Total number of pages trained on.",
-          "type": "integer"
+          "type": "integer",
+          "x-nullable": false
         },
         "errors": {
           "description": "List of errors per page.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -843,7 +842,7 @@
             "name": "TrainStatus",
             "modelAsString": false
           },
-          "x-nullable": false          
+          "x-nullable": false
         }
       }
     },
@@ -852,7 +851,7 @@
       "required": [
         "fieldName",
         "accuracy"
-      ],      
+      ],
       "properties": {
         "fieldName": {
           "description": "Field Name to be extracted.",
@@ -863,10 +862,13 @@
           "type": "number"
         }
       }
-    },    
+    },
     "FormOperationError": {
       "description": "Error reported during an operation.",
       "type": "object",
+      "required": [
+        "errorMessage"
+      ],
       "properties": {
         "errorMessage": {
           "description": "Message reported during the train operation.",
@@ -878,7 +880,7 @@
       "type": "object",
       "required": [
         "error"
-      ],      
+      ],
       "properties": {
         "error": {
           "$ref": "#/definitions/ErrorInformation"
@@ -890,12 +892,12 @@
       "required": [
         "code",
         "message"
-      ],      
+      ],
       "properties": {
         "code": {
           "type": "string"
         },
-        "innerError": {
+        "innererror": {
           "$ref": "#/definitions/InnerError"
         },
         "message": {
@@ -907,7 +909,7 @@
       "type": "object",
       "required": [
         "requestId"
-      ],      
+      ],
       "properties": {
         "requestId": {
           "type": "string"
@@ -920,28 +922,28 @@
       "required": [
         "version",
         "readResults"
-      ],      
+      ],
       "properties": {
         "version": {
           "description": "Version of schema used for this result.",
           "type": "string"
         },
-        "recognitionResults": {
-          "description": "Page level information extracted in the analyzed\r\ndocument.",
+        "readResults": {
+          "description": "Text extracted from the input.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/ReadResult"
           }
         },
         "pageResults": {
-          "description": "Page level information extracted in the analyzed\r\ndocument.",
+          "description": "Page-level information extracted from the input.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/PageResult"
           }
         },
         "documentResults": {
-          "description": "Page level information extracted in the analyzed\r\ndocument.",
+          "description": "Document-level information extracted from the input.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/DocumentResult"
@@ -960,11 +962,11 @@
       "description": "Text extracted from a page in the input document.",
       "type": "object",
       "required": [
-        "page", 
-        "angle", 
-        "width", 
-        "height", 
-        "unit", 
+        "page",
+        "angle",
+        "width",
+        "height",
+        "unit",
         "language"
       ],
       "properties": {
@@ -974,11 +976,11 @@
           "minimum": 1
         },
         "angle": {
-          "description": "The general orientation of the text in clockwise direction, measured in degrees between [0, 360).",
+          "description": "The general orientation of the text in clockwise direction, measured in degrees between (-180, 180].",
           "type": "number",
           "minimum": -180,
           "maximum": 180,
-          "exclusiveMaximum": true
+          "exclusiveMinimum": true
         },
         "width": {
           "description": "The width of the image/PDF in pixels/inches, respectively.",
@@ -1015,7 +1017,7 @@
           }
         }
       }
-    },    
+    },
     "Language": {
       "description": "Language code",
       "type": "string",
@@ -1033,8 +1035,8 @@
       "description": "An object representing an extracted text line.",
       "type": "object",
       "required": [
-        "text", 
-        "boundingBox", 
+        "text",
+        "boundingBox",
         "words"
       ],
       "properties": {
@@ -1047,7 +1049,7 @@
           "$ref": "#/definitions/BoundingBox"
         },
         "language": {
-          "description": "The detected language of this line.",
+          "description": "The detected language of this line, if different from the overall page language.",
           "$ref": "#/definitions/Language"
         },
         "words": {
@@ -1096,8 +1098,8 @@
       "description": "Extraction information of a single page in a document.",
       "type": "object",
       "required": [
-        "page", 
-        "keyValuePairs", 
+        "page",
+        "keyValuePairs",
         "tables"
       ],
       "properties": {
@@ -1136,8 +1138,8 @@
       "description": "Representation of a key-value pair as a list of key and value tokens.",
       "type": "object",
       "required": [
-        "key", 
-        "value", 
+        "key",
+        "value",
         "confidence"
       ],
       "properties": {
@@ -1159,7 +1161,7 @@
       "description": "Information about the extracted key or value in a key-value pair.",
       "type": "object",
       "required": [
-        "text", 
+        "text",
         "boundingBox"
       ],
       "properties": {
@@ -1188,8 +1190,8 @@
       "description": "Extraction information about a table contained in a page.",
       "type": "object",
       "required": [
-        "rows", 
-        "columns", 
+        "rows",
+        "columns",
         "cells"
       ],
       "properties": {
@@ -1216,10 +1218,10 @@
       "description": "Information about the extracted cell in a table.",
       "type": "object",
       "required": [
-        "rowIndex", 
-        "columnIndex", 
-        "text", 
-        "boundingBox", 
+        "rowIndex",
+        "columnIndex",
+        "text",
+        "boundingBox",
         "confidence"
       ],
       "properties": {
@@ -1316,8 +1318,8 @@
       "description": "Recognized field value.",
       "type": "object",
       "required": [
-        "type", 
-        "text", 
+        "type",
+        "text",
         "confidence"
       ],
       "properties": {
@@ -1348,11 +1350,27 @@
         },
         "valueNumber": {
           "description": "Floating point value.",
-          "type": "number"
+          "type": "number",
+          "x-nullable": false
         },
         "valueInteger": {
           "description": "Integer value.",
-          "type": "integer"
+          "type": "integer",
+          "x-nullable": false
+        },
+        "valueArray": {
+          "description": "Array of field values.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FieldValue"
+          }
+        },
+        "valueObject": {
+          "description": "Dictionary of named field values.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/FieldValue"
+          }
         },
         "text": {
           "description": "Extracted text content of the recognized field.",
@@ -1399,7 +1417,7 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
-    }        
+    }
   },
   "parameters": {
     "Endpoint": {
