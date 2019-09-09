@@ -34,7 +34,7 @@
       "post": {
         "summary": "Train Custom Model",
         "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
-        "operationId": "AsyncTrainCustomModel",
+        "operationId": "TrainCustomModelAsync",
         "consumes": [
           "application/json"
         ],
@@ -76,11 +76,11 @@
         }
       }
     },
-    "/custom/asyncTrainResult/{id}": {
+    "/custom/asyncTrainOperations/{id}": {
       "get": {
         "summary": "Get Train Result",
         "description": "Retrieve train operation status and related results.",
-        "operationId": "GetTrainOperationResult",
+        "operationId": "GetTrainResult",
         "consumes": [],
         "produces": [
           "application/json"
@@ -116,11 +116,11 @@
         }
       }
     },
-    "/custom/TrainOperations": {
+    "/custom/asyncTrainOperations": {
       "get": {
         "summary": "List Train Operations",
         "description": "Retrieve list of train operations.",
-        "operationId": "GetTrainOperationsList",
+        "operationId": "GetTrainOperations",
         "consumes": [],
         "produces": [
           "application/json"
@@ -130,7 +130,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncTrainOperationsList"
+              "$ref": "#/definitions/AsyncOperationsList"
             }
           },
           "default": {
@@ -151,7 +151,7 @@
       "post": {
         "summary": "Analyze Form",
         "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
-        "operationId": "AsyncAnalyzeWithCustomModel",
+        "operationId": "AnalyzeWithCustomModelAsync",
         "consumes": [
           "application/json"
         ],
@@ -201,11 +201,11 @@
         }
       }
     },
-    "/custom/asyncAnalyzeResult/{id}": {
+    "/custom/asyncAnalyzeOperations/{id}": {
       "get": {
         "summary": "Get Analyze Result",
         "description": "Retrieve Analyze operation status.",
-        "operationId": "GetAnalyzeOperationResult",
+        "operationId": "GetAnalyzeResult",
         "consumes": [],
         "produces": [
           "application/json"
@@ -241,11 +241,11 @@
         }
       }
     },
-    "/custom/AnalyzeOperations": {
+    "/custom/asyncAnalyzeOperations": {
       "get": {
         "summary": "List Analyze Operations",
         "description": "Retrieve list of batch operations and related results.",
-        "operationId": "GetAnalyzeOperationsList",
+        "operationId": "GetAnalyzeOperations",
         "consumes": [],
         "produces": [
           "application/json"
@@ -255,7 +255,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncAnalyzeOperationsList"
+              "$ref": "#/definitions/AsyncOperationsList"
             }
           },
           "default": {
@@ -386,67 +386,162 @@
           }
         }
       }
-    }    
+    },
+    "/prebuilt/receipt/asyncAnalyze": {
+      "post": {
+        "summary": "Analyze Receipt",
+        "description": "Extract field text and semantic values from a given receipt document.",
+        "operationId": "AnalyzeReceiptAsync",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "analyzeRequest",
+            "in": "body",
+            "description": "Request object for scoring form.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AnalyzeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Analyze request queued successfully.",
+            "headers": {
+              "Operation-Location": {
+                "type": "string",
+                "description": "Operation location with an operation id used to track the progress of analyze operation. The returned id is the operation id. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
+              }
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/AnalyzeBatch.json"
+          }
+        }
+      }
+    },
+    "/prebuilt/receipt/operations{id}": {
+      "get": {
+        "summary": "Get Receipt Result",
+        "description": "Retrieve receipt operation status.",
+        "operationId": "GetReceiptResult",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Analyze operation identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncAnalyzeResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }        
   },
   "definitions": {
+    "OperationStatus": {
+      "type": "string",
+      "description": "Status of async operation.",
+      "enum": [
+        "notStarted",
+        "running",
+        "succeeded",
+        "failed",
+        "tombstone"
+      ],
+      "x-ms-enum": {
+        "name": "OperationStatus",
+        "modelAsString": false
+      },
+      "x-nullable": false
+    },    
     "AsyncTrainResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
+      "required": [
+        "status",
+        "createdDateTime",
+        "lastUpdatedDateTime"
+      ],      
       "properties": {
-          "status": {
-            "description": "Get status of batch operation.",
-            "enum": [
-              "NotStarted",
-              "Running",
-              "Succeeded",
-              "Failed"
-            ],
-            "type": "string"
-          },
-          "createdDateTime": {
-            "format": "date-time",
-            "description": "Get date time the batch operation was submitted.",
-            "type": "string"
-          },
-          "lastUpdatedDateTime": {
-            "format": "date-time",
-            "description": "Get last updated date time of this batch operation.",
-            "type": "string"
-          },
-          "trainBatchResult": { 
-            "description": "Train batch operation result.",
-            "$ref": "#/definitions/TrainResult"
-          }
+        "status": {
+          "description": "Get status of batch operation.",
+          "$ref": "#/definitions/OperationStatus"
+        },
+        "createdDateTime": {
+          "format": "date-time",
+          "description": "Get date time the batch operation was submitted.",
+          "type": "string"
+        },
+        "lastUpdatedDateTime": {
+          "format": "date-time",
+          "description": "Get last updated date time of this batch operation.",
+          "type": "string"
+        },
+        "trainBatchResult": { 
+          "description": "Train batch operation result.",
+          "$ref": "#/definitions/TrainResult"
+        }
 	    }
     },
     "AsyncAnalyzeResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
+      "required": [
+        "status",
+        "createdDateTime",
+        "lastUpdatedDateTime"
+      ],      
       "properties": {
-          "status": {
-            "description": "Get status of batch operation.",
-            "enum": [
-              "NotStarted",
-              "Running",
-              "Succeeded",
-              "Failed"
-            ],
-            "type": "string"
-          },
-          "createdDateTime": {
-            "format": "date-time",
-            "description": "Get date time the batch operation was submitted.",
-            "type": "string"
-          },
-          "lastUpdatedDateTime": {
-            "format": "date-time",
-            "description": "Get last updated date time of this batch operation.",
-            "type": "string"
-          },
-          "analyzeResult": {  
-            "description": "Analyze batch operation result.",
-            "$ref": "#/definitions/AnalyzeResult"
-          }
+        "status": {
+          "description": "Get status of batch operation.",
+          "$ref": "#/definitions/OperationStatus"
+        },
+        "createdDateTime": {
+          "format": "date-time",
+          "description": "Get date time the batch operation was submitted.",
+          "type": "string"
+        },
+        "lastUpdatedDateTime": {
+          "format": "date-time",
+          "description": "Get last updated date time of this batch operation.",
+          "type": "string"
+        },
+        "analyzeResult": {  
+          "description": "Analyze batch operation result.",
+          "$ref": "#/definitions/AnalyzeResult"
+        }
        }
     },
     "TrainRequest": {
@@ -468,15 +563,14 @@
         },
         "labelFile": {
           "description": "Specify if label file should be used for training.",
-          "type":"boolean"
+          "type":"boolean",
+          "default": false,
+          "x-nullable": false          
         }
       }
     },
     "AnalyzeRequest": {
       "description": "Contract to initiate a analyze request.",
-      "required": [
-        "source"
-      ],
       "type": "object",
       "properties": {
         "source": {
@@ -493,7 +587,9 @@
         },
         "includeTextResults": {
           "description": "Get or set specifier to retrieve text results.",
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "x-nullable": false          
         },
         "keys": {
           "description": "An optional list of known keys to extract the values for.",
@@ -517,13 +613,21 @@
         },
         "includeSubFolders": {
           "description": "A flag to indicate if sub folders within the set of\r\nprefix folders will also need to be included when searching\r\nfor content to be preprocessed.",
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "x-nullable": false
         }
       }
     },
     "TrainResult": {
       "description": "Response of the Train API call.",
       "type": "object",
+      "required": [
+        "modelId",
+        "trainingDocuments",
+        "trainingFields",
+        "errors"
+      ],      
       "properties": {
         "modelId": {
           "description": "Identifier of the model.",
@@ -541,21 +645,7 @@
         },
         "trainingFields": {
           "description": "Training Fields.",
-          "type": "object",
-          "properties":{
-            "fields": {
-              "description": "List of fields used to train the model and the\r\ntrain operation error reported by each.",
-              "uniqueItems": false,
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/FormFieldsReport"
-              }   
-            }, 
-            "averageModelAccuracy":{
-              "description": "Average accuracy.",
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/TrainingFields"
         },
         "errors": {
           "description": "Errors returned during the training operation.",
@@ -567,57 +657,65 @@
         }
       }
     },
+    "TrainingFields": {
+      "description": "Training Fields.",
+      "type": "object",
+      "required": [
+        "fields",
+        "averageModelAccuracy"
+      ],
+      "properties": {
+        "fields": {
+          "description": "List of fields used to train the model and the\r\ntrain operation error reported by each.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FormFieldsReport"
+          }
+        },
+        "averageModelAccuracy": {
+          "description": "Average accuracy.",
+          "type": "number"
+        }
+      }
+    },    
     "AsyncOperation": {
       "description": "Operation details.",
-      "type":"object",
+      "type": "object",
+      "required": [
+        "operationId",
+        "status",
+        "createdDateTime"
+      ],
       "properties": {
         "operationId": {
           "description": "Get or set train operation identifier.",
           "type": "string",
           "format": "uuid",
           "x-nullable": false
-        },      
+        },
         "status": {
           "description": "Get or set the status of operation.",
-          "enum": [
-            "created",
-            "inprogress",
-            "completed",
-            "tombestoned"
-          ],
-          "type": "string"
+          "$ref": "#/definitions/OperationStatus"
         },
         "createdDateTime": {
           "format": "date-time",
           "description": "Get or set the created date time of the operation.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
+        },
+        "lastUpdatedDateTime": {
+          "format": "date-time",
+          "description": "Get or set the last updated date time of the operation.",
+          "type": "string",
+          "x-nullable": false
         }
       }
     },
-    "AsyncTrainOperationsList": {
-      "description": "Result of a train operation status.",
-      "type": "object",
-      "properties": {
-        "operations": {
-          "uniqueItems":false,
-          "type":"array",
-          "items": {
-            "$ref": "#/definitions/AsyncOperation"
-          }
-        }
-      }
-    },
-    "AsyncAnalyzeOperationsList": {
-      "description": "Result of a analyze operation status.",
-      "type": "object",
-      "properties": {
-        "operations": {
-          "uniqueItems":false,
-          "type":"array",
-          "items": {
-            "$ref": "#/definitions/AsyncOperation"
-          }
-        }
+    "AsyncOperationsList": {
+      "description": "List of recently completed or currently running operations.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AsyncOperation"
       }
     },
     "ModelsResults": {
@@ -641,6 +739,13 @@
     "ModelResult": {
       "description": "Result of a model status query operation.",
       "type": "object",
+      "required": [
+        "modelId",
+        "status",
+        "createdDateTime",
+        "lastUpdatedDateTime",
+        "keys"
+      ],      
       "properties": {
         "modelId": {
           "description": "Get or set model identifier.",
@@ -655,17 +760,24 @@
             "ready",
             "invalid"
           ],
-          "type": "string"
+          "type": "string",
+          "x-ms-enum": {
+            "name": "ModelStatus",
+            "modelAsString": false
+          },
+          "x-nullable": false          
         },
         "createdDateTime": {
           "format": "date-time",
           "description": "Get or set the created date time of the model.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
         "lastUpdatedDateTime": {
           "format": "date-time",
           "description": "Get or set the model last updated datetime.",
-          "type": "string"
+          "type": "string",
+          "x-nullable": false
         },
         "Keys": {
           "$ref": "#/definitions/KeysResult",
@@ -676,6 +788,9 @@
     "KeysResult": {
       "description": "Keys extracted by a model.",
       "type": "object",
+      "required": [
+        "clusters"
+      ],      
       "properties": {
         "clusters": {
           "description": "Object mapping ClusterIds to Key lists.",
@@ -692,6 +807,12 @@
     },
     "FormDocumentReport": {
       "type": "object",
+      "required": [
+        "documentName",
+        "pages",
+        "errors",
+        "status"
+      ],      
       "properties": {
         "documentName": {
           "description": "Reference to the data that the report is for.",
@@ -717,12 +838,21 @@
             "partialSuccess",
             "failure"
           ],
-          "type": "string"
+          "type": "string",
+          "x-ms-enum": {
+            "name": "TrainStatus",
+            "modelAsString": false
+          },
+          "x-nullable": false          
         }
       }
     },
     "FormFieldsReport": {
       "type": "object",
+      "required": [
+        "fieldName",
+        "accuracy"
+      ],      
       "properties": {
         "fieldName": {
           "description": "Field Name to be extracted.",
@@ -730,7 +860,7 @@
         },
         "accuracy": {
           "description": "Accuracy of extracted label data.",
-          "type": "string"
+          "type": "number"
         }
       }
     },    
@@ -746,6 +876,9 @@
     },
     "ErrorResponse": {
       "type": "object",
+      "required": [
+        "error"
+      ],      
       "properties": {
         "error": {
           "$ref": "#/definitions/ErrorInformation"
@@ -754,6 +887,10 @@
     },
     "ErrorInformation": {
       "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],      
       "properties": {
         "code": {
           "type": "string"
@@ -768,6 +905,9 @@
     },
     "InnerError": {
       "type": "object",
+      "required": [
+        "requestId"
+      ],      
       "properties": {
         "requestId": {
           "type": "string"
@@ -777,6 +917,10 @@
     "AnalyzeResult": {
       "description": "Analyze API call result.",
       "type": "object",
+      "required": [
+        "version",
+        "readResults"
+      ],      
       "properties": {
         "version": {
           "description": "Version of schema used for this result.",
@@ -784,15 +928,13 @@
         },
         "recognitionResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/RecognitionResult"
+            "$ref": "#/definitions/ReadResult"
           }
         },
         "pageResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/PageResult"
@@ -800,7 +942,6 @@
         },
         "documentResults": {
           "description": "Page level information extracted in the analyzed\r\ndocument.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/DocumentResult"
@@ -808,7 +949,6 @@
         },
         "errors": {
           "description": "List of errors reported during the analyze\r\noperation.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/FormOperationError"
@@ -816,11 +956,16 @@
         }
       }
     },
-    "RecognitionResult": {
+    "ReadResult": {
       "description": "Text extracted from a page in the input document.",
       "type": "object",
       "required": [
-        "page", "angle", "width", "height", "unit", "language"
+        "page", 
+        "angle", 
+        "width", 
+        "height", 
+        "unit", 
+        "language"
       ],
       "properties": {
         "page": {
@@ -831,8 +976,8 @@
         "angle": {
           "description": "The general orientation of the text in clockwise direction, measured in degrees between [0, 360).",
           "type": "number",
-          "minimum": 0,
-          "maximum": 360,
+          "minimum": -180,
+          "maximum": 180,
           "exclusiveMaximum": true
         },
         "width": {
@@ -888,7 +1033,9 @@
       "description": "An object representing an extracted text line.",
       "type": "object",
       "required": [
-        "text", "boundingBox", "words"
+        "text", 
+        "boundingBox", 
+        "words"
       ],
       "properties": {
         "text": {
@@ -949,7 +1096,9 @@
       "description": "Extraction information of a single page in a document.",
       "type": "object",
       "required": [
-        "page", "keyValuePairs", "tables"
+        "page", 
+        "keyValuePairs", 
+        "tables"
       ],
       "properties": {
         "page": {
@@ -962,7 +1111,8 @@
           "description": "Cluster identifier.",
           "type": "integer",
           "format": "int32",
-          "minimum": 0
+          "minimum": 0,
+          "x-nullable": false
         },
         "keyValuePairs": {
           "description": "List of key-value pairs extracted from the page.",
@@ -986,7 +1136,9 @@
       "description": "Representation of a key-value pair as a list of key and value tokens.",
       "type": "object",
       "required": [
-        "key", "value", "confidence"
+        "key", 
+        "value", 
+        "confidence"
       ],
       "properties": {
         "key": {
@@ -1007,7 +1159,8 @@
       "description": "Information about the extracted key or value in a key-value pair.",
       "type": "object",
       "required": [
-        "text", "boundingBox"
+        "text", 
+        "boundingBox"
       ],
       "properties": {
         "text": {
@@ -1035,7 +1188,9 @@
       "description": "Extraction information about a table contained in a page.",
       "type": "object",
       "required": [
-        "rows", "columns", "cells"
+        "rows", 
+        "columns", 
+        "cells"
       ],
       "properties": {
         "rows": {
@@ -1061,7 +1216,11 @@
       "description": "Information about the extracted cell in a table.",
       "type": "object",
       "required": [
-        "rowIndex", "columnIndex", "text", "boundingBox", "confidence"
+        "rowIndex", 
+        "columnIndex", 
+        "text", 
+        "boundingBox", 
+        "confidence"
       ],
       "properties": {
         "rowIndex": {
@@ -1078,13 +1237,15 @@
           "description": "Number of rows spanned by this cell.",
           "type": "integer",
           "minimum": 1,
-          "default": 1
+          "default": 1,
+          "x-nullable": false
         },
         "columnSpan": {
           "description": "Number of columns spanned by this cell.",
           "type": "integer",
           "minimum": 1,
-          "default": 1
+          "default": 1,
+          "x-nullable": false
         },
         "text": {
           "description": "The text content of the cell.",
@@ -1107,17 +1268,22 @@
         },
         "isHeader": {
           "description": "Is the current cell a header cell?",
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "x-nullable": false
         },
         "isFooter": {
           "description": "Is the current cell a footer cell?",
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "x-nullable": false
         }
       }
     },
     "DocumentResult": {
       "description": "A set of extracted fields corresponding to a document, such as a receipt, in the input document.",
       "required": [
+        "docType",
         "pageRange",
         "fields"
       ],
@@ -1150,7 +1316,9 @@
       "description": "Recognized field value.",
       "type": "object",
       "required": [
-        "type", "text", "confidence"
+        "type", 
+        "text", 
+        "confidence"
       ],
       "properties": {
         "type": {
@@ -1164,12 +1332,14 @@
         "valueDate": {
           "description": "Date value.",
           "type": "string",
-          "format": "date"
+          "format": "date",
+          "x-nullable": false
         },
         "valueTime": {
           "description": "Time value.",
           "type": "string",
-          "format": "time"
+          "format": "time",
+          "x-nullable": false
         },
         "valuePhoneNumber": {
           "description": "Phone number value.",
@@ -1214,7 +1384,9 @@
         "time",
         "phoneNumber",
         "number",
-        "integer"
+        "integer",
+        "array",
+        "object"
       ],
       "x-ms-enum": {
         "name": "FieldValueType",
