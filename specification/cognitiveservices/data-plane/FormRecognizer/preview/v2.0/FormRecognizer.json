@@ -105,6 +105,88 @@
         }
       }      
     },
+    "/custom/models/{modelId}": {
+      "get": {
+        "summary": "Get Custom Model",
+        "description": "Get information about a model.",
+        "operationId": "GetCustomModel",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "description": "Model identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "description": "An optional parameter to list extracted keys.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncModelResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/GetModel.json"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Model",
+        "description": "Delete model artifacts.",
+        "operationId": "DeleteCustomModel",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "description": "The identifier of the model to delete.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully tombstoned model artifacts and will be subsequently removed."
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/DeleteModel.json"
+          }
+        }
+      }
+    },    
     "/custom/models/{modelId}/analyze": {
       "post": {
         "summary": "Analyze Form",
@@ -207,88 +289,6 @@
         }
       }
     },
-    "/custom/models/{modelId}": {
-      "get": {
-        "summary": "Get Custom Model",
-        "description": "Get information about a model.",
-        "operationId": "GetCustomModel",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "modelId",
-            "in": "path",
-            "description": "Model identifier.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          },
-          {
-            "name": "keys",
-            "in": "query",
-            "description": "An optional parameter to list extracted keys.",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ModelResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/GetModel.json"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Model",
-        "description": "Delete model artifacts.",
-        "operationId": "DeleteCustomModel",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "modelId",
-            "in": "path",
-            "description": "The identifier of the model to delete.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successfully tombstoned model artifacts and will be subsequently removed."
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/DeleteModel.json"
-          }
-        }
-      }
-    },
     "/prebuilt/receipt/analyze": {
       "post": {
         "summary": "Analyze Receipt",
@@ -370,10 +370,10 @@
         }
       }
     },
-    "/readDoc/analyze": {
+    "/readdoc/analyze": {
       "post": {
         "summary": "DocumentOCR Analyze",
-        "description": "Extract field text and semantic values from a given receipt document.",
+        "description": "Extract text from a given document.",
         "operationId": "ReadDocAnalyze",
         "consumes": [
         ],
@@ -405,10 +405,10 @@
         }
       }
     },
-    "/readDoc/analyzeResults/{resultId}": {
+    "/readdoc/analyzeResults/{resultId}": {
       "get": {
-        "summary": "Get Receipt Result",
-        "description": "Retrieve receipt operation status.",
+        "summary": "Get DocumentOCR Result",
+        "description": "Retrieve analyze operation status.",
         "operationId": "GetReadDocResult",
         "consumes": [],
         "produces": [
@@ -458,34 +458,16 @@
       },
       "x-nullable": false
     },
-    "AsyncTrainResult": {
+    "AsyncModelResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
       "required": [
-        "status",
-        "createdDateTime",
-        "lastUpdatedDateTime"
+        "modelResult"
       ],
       "properties": {
-        "status": {
-          "description": "Get status of batch operation.",
-          "$ref": "#/definitions/OperationStatus"
-        },
-        "createdDateTime": {
-          "format": "date-time",
-          "description": "Get date time the batch operation was submitted.",
-          "type": "string",
-          "x-nullable": false
-        },
-        "lastUpdatedDateTime": {
-          "format": "date-time",
-          "description": "Get last updated date time of this batch operation.",
-          "type": "string",
-          "x-nullable": false
-        },
-        "trainResult": {
+        "modelResult": {
           "description": "Train batch operation result.",
-          "$ref": "#/definitions/TrainResult"
+          "$ref": "#/definitions/ModelResult"
         }
       }
     },
@@ -597,18 +579,11 @@
       "description": "Response of the Train API call.",
       "type": "object",
       "required": [
-        "modelId",
         "trainingDocuments",
         "trainingFields",
         "errors"
       ],
       "properties": {
-        "modelId": {
-          "description": "Identifier of the model.",
-          "type": "string",
-          "format": "uuid",
-          "x-nullable": false
-        },
         "trainingDocuments": {
           "description": "List of documents used to train the model and the\r\ntrain operation error reported by each.",
           "uniqueItems": false,
@@ -731,9 +706,11 @@
         "status": {
           "description": "Get or set the status of model.",
           "enum": [
+            "creating",
             "created",
             "ready",
-            "invalid"
+            "invalid",
+            "tombstone"
           ],
           "type": "string",
           "x-ms-enum": {
@@ -758,7 +735,11 @@
           "$ref": "#/definitions/KeysResult",
           "description": "Keys extracted by model.",
           "x-nullable": false
-        }
+        },
+        "trainResult": {
+          "description": "Train batch operation result.",
+          "$ref": "#/definitions/TrainResult"
+        }        
       }
     },
     "KeysResult": {
