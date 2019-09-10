@@ -1136,6 +1136,13 @@
           "items": {
             "$ref": "#/definitions/ElementReference"
           }
+        },
+        "words": {
+          "description": "List of words in the text content of the key or value.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TextWord"
+          }
         }
       }
     },
@@ -1223,6 +1230,13 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/ElementReference"
+          }
+        },
+        "words": {
+          "description": "List of words in the text content of the cell.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TextWord"
           }
         },
         "isHeader": {
