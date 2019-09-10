@@ -34,7 +34,7 @@
       "post": {
         "summary": "Train Custom Model",
         "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
-        "operationId": "TrainCustomModelAsync",
+        "operationId": "TrainCustomModel",
         "consumes": [
           "application/json"
         ],
@@ -42,7 +42,7 @@
           {
             "name": "trainRequest",
             "in": "body",
-            "description": "Request object for training.",
+            "description": "Request for training custom model.",
             "required": true,
             "schema": {
               "$ref": "#/definitions/TrainRequest"
@@ -54,8 +54,8 @@
             "description": "Train request successfully queued.",
             "headers": {
               "Location": {
-                "type": "/custom/asyncTrainOperations/1234",
-                "description": "Operation location with an operation id used to track the progress of training. The returned id is the operation id, not trained model id. Trained model id can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
+                "type": "string",
+                "description": "Result id used to track the progress of training. The returned id is the train result id, not trained model id. Trained model id can be obtained only when the status in result indicates \"success\" in Status field."
               }
             }
           },
@@ -105,7 +105,7 @@
         }
       }      
     },
-    "/custom/models/{id}/analyze": {
+    "/custom/models/{modelId}/analyze": {
       "post": {
         "summary": "Analyze Form",
         "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
@@ -118,7 +118,7 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "modelId",
             "in": "path",
             "description": "Model identifier to analyze the document with.",
             "required": true,
@@ -140,8 +140,8 @@
             "description": "Analyze request queued successfully.",
             "headers": {
               "Location": {
-                "type": "/custom/analyzeResults/{id}",
-                "description": "Operation location with an operation id used to track the progress of analyze operation. The returned id is the operation id. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
+                "type": "string",
+                "description": "Result id to track the progress of analyze operation. Result of analyze operation can be obtained only when the operation status becomes \"success\" in status field."
               }
             }
           },
@@ -159,7 +159,7 @@
         }
       }
     },
-    "/custom/models/{id}/analyzeResults/{id}": {
+    "/custom/models/{modelId}/analyzeResults/{resultId}": {
       "get": {
         "summary": "Get Analyze Result",
         "description": "Retrieve Analyze operation status.",
@@ -170,9 +170,17 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "modelId",
             "in": "path",
-            "description": "Analyze operation identifier.",
+            "description": "Custom model identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "resultId",
+            "in": "path",
+            "description": "Analyze operation result identifier.",
             "required": true,
             "type": "string",
             "format": "uuid"
@@ -199,7 +207,7 @@
         }
       }
     },
-    "/custom/models/{id}": {
+    "/custom/models/{modelId}": {
       "get": {
         "summary": "Get Custom Model",
         "description": "Get information about a model.",
@@ -210,7 +218,7 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "modelId",
             "in": "path",
             "description": "Model identifier.",
             "required": true,
@@ -255,7 +263,7 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "modelId",
             "in": "path",
             "description": "The identifier of the model to delete.",
             "required": true,
@@ -265,7 +273,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Successfully removed model artifacts."
+            "description": "Successfully tombstoned model artifacts and will be subsequently removed."
           },
           "default": {
             "description": "Response entity accompanying non-successful responses containing additional details about the error.",
@@ -304,10 +312,10 @@
           }
         ],
         "responses": {
-          "202": {
+          "201": {
             "description": "Analyze request queued successfully.",
             "headers": {
-              "Operation-Location": {
+              "Location": {
                 "type": "string",
                 "description": "Operation location with an operation id used to track the progress of analyze operation. The returned id is the operation id. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
               }
@@ -327,7 +335,7 @@
         }
       }
     },
-    "/prebuilt/receipt/analyzeResults/{id}": {
+    "/prebuilt/receipt/analyzeResults/{resultId}": {
       "get": {
         "summary": "Get Receipt Result",
         "description": "Retrieve receipt operation status.",
@@ -338,7 +346,77 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "resultId",
+            "in": "path",
+            "description": "Analyze operation identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AsyncAnalyzeResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/readDoc/analyze": {
+      "post": {
+        "summary": "DocumentOCR Analyze",
+        "description": "Extract field text and semantic values from a given receipt document.",
+        "operationId": "ReadDocAnalyze",
+        "consumes": [
+        ],
+        "produces": [
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "201": {
+            "description": "Analyze request queued successfully.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Operation id used to track the progress of analyze operation. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
+              }
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/AnalyzeBatch.json"
+          }
+        }
+      }
+    },
+    "/readDoc/analyzeResults/{resultId}": {
+      "get": {
+        "summary": "Get Receipt Result",
+        "description": "Retrieve receipt operation status.",
+        "operationId": "GetReadDocResult",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "resultId",
             "in": "path",
             "description": "Analyze operation identifier.",
             "required": true,
@@ -678,7 +756,8 @@
         },
         "keys": {
           "$ref": "#/definitions/KeysResult",
-          "description": "Keys extracted by model."
+          "description": "Keys extracted by model.",
+          "x-nullable": false
         }
       }
     },
