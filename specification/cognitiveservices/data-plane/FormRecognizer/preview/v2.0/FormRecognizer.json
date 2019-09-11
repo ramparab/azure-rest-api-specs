@@ -32,7 +32,7 @@
   "paths": {
     "/custom/models": {
       "post": {
-        "summary": "Train Custom Model",
+        "summary": "New Custom Model",
         "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
         "operationId": "TrainCustomModel",
         "consumes": [
@@ -83,7 +83,19 @@
         "produces": [
           "application/json"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "op",
+            "in": "query",
+            "description": "Summary or full list of models to be returned.",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "full",
+              "summary"
+            ]
+          }          
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -135,7 +147,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncModelResult"
+              "$ref": "#/definitions/ModelQueryResult"
             }
           },
           "default": {
@@ -272,7 +284,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncAnalyzeResult"
+              "$ref": "#/definitions/AnalyzeOperationResult"
             }
           },
           "default": {
@@ -358,7 +370,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncAnalyzeResult"
+              "$ref": "#/definitions/AnalyzeOperationResult"
             }
           },
           "default": {
@@ -372,7 +384,7 @@
     },
     "/readdoc/analyze": {
       "post": {
-        "summary": "DocumentOCR Analyze",
+        "summary": "[placeholder] DocumentOCR Analyze",
         "description": "Extract text from a given document.",
         "operationId": "ReadDocAnalyze",
         "consumes": [
@@ -407,7 +419,7 @@
     },
     "/readdoc/analyzeResults/{resultId}": {
       "get": {
-        "summary": "Get DocumentOCR Result",
+        "summary": "[placeholder] Get DocumentOCR Result",
         "description": "Retrieve analyze operation status.",
         "operationId": "GetReadDocResult",
         "consumes": [],
@@ -428,7 +440,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AsyncAnalyzeResult"
+              "$ref": "#/definitions/AnalyzeOperationResult"
             }
           },
           "default": {
@@ -450,7 +462,7 @@
         "running",
         "succeeded",
         "failed",
-        "tombstone"
+        "tombstoned"
       ],
       "x-ms-enum": {
         "name": "OperationStatus",
@@ -458,20 +470,34 @@
       },
       "x-nullable": false
     },
-    "AsyncModelResult": {
-      "description": "Status and result of batch operation.",
+    "ContentType": {
+      "type": "string",
+      "description": "Supported content-type.",
+      "enum": [
+        "application/pdf",
+        "image/jpeg",
+        "image/png"
+      ],
+      "x-ms-enum": {
+        "name": "ContentType",
+        "modelAsString": false
+      },
+      "x-nullable": false
+    },
+    "ModelQueryResult": {
+      "description": "Status and result of new model training operation.",
       "type": "object",
       "required": [
         "modelResult"
       ],
       "properties": {
         "modelResult": {
-          "description": "Train batch operation result.",
+          "description": "New model train operation result.",
           "$ref": "#/definitions/ModelResult"
         }
       }
     },
-    "AsyncAnalyzeResult": {
+    "AnalyzeOperationResult": {
       "description": "Status and result of batch operation.",
       "type": "object",
       "properties": {
@@ -522,9 +548,9 @@
         }
       }
     },
-    "AnalyzeRequest": {
-      "description": "Contract to initiate a analyze request.",
-      "type": "object",
+    "AnalyzeInputConfig": {
+      "description": "Analyze request parameter.",
+      "type": "object",      
       "properties": {
         "source": {
           "description": "Get or set source path to file to score.",
@@ -539,6 +565,16 @@
           "type": "string",
           "format": "byte"
         },
+        "mimetype": {
+          "description": "Content type of sourceData.",
+          "$ref": "#/definitions/ContentType"
+        }
+      }
+    },
+    "AnalyzeOutputConfig": {
+      "description": "Analyze request parameter",
+      "type": "object",      
+      "properties": {
         "includeTextDetails": {
           "description": "Get or set specifier to retrieve text results.",
           "type": "boolean",
@@ -551,6 +587,26 @@
           "items": {
             "type": "string"
           }
+        },
+        "hints": {
+          "description": "Get or set specifier to retrieve key/value hints.",
+          "type": "boolean",
+          "default": false,
+          "x-nullable": false
+        }
+      }
+    },
+    "AnalyzeRequest": {
+      "description": "Contract to initiate a analyze request.",
+      "type": "object",
+      "properties": {
+        "inputConfig": {
+          "description": "Content type of sourceData.",
+          "$ref": "#/definitions/AnalyzeInputConfig"
+        },
+        "outputConfig": {
+          "description": "Content type of sourceData.",
+          "$ref": "#/definitions/AnalyzeOutputConfig"
         }
       }
     },
@@ -626,46 +682,6 @@
         }
       }
     },
-    "AsyncOperation": {
-      "description": "Operation details.",
-      "type": "object",
-      "required": [
-        "operationId",
-        "status",
-        "createdDateTime"
-      ],
-      "properties": {
-        "operationId": {
-          "description": "Get or set train operation identifier.",
-          "type": "string",
-          "format": "uuid",
-          "x-nullable": false
-        },
-        "status": {
-          "description": "Get or set the status of operation.",
-          "$ref": "#/definitions/OperationStatus"
-        },
-        "createdDateTime": {
-          "format": "date-time",
-          "description": "Get or set the created date time of the operation.",
-          "type": "string",
-          "x-nullable": false
-        },
-        "lastUpdatedDateTime": {
-          "format": "date-time",
-          "description": "Get or set the last updated date time of the operation.",
-          "type": "string",
-          "x-nullable": false
-        }
-      }
-    },
-    "AsyncOperationsList": {
-      "description": "List of recently completed or currently running operations.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/AsyncOperation"
-      }
-    },
     "ModelsResults": {
       "description": "Result of query operation to fetch multiple models.",
       "type": "object",
@@ -673,6 +689,30 @@
         "models"
       ],
       "properties": {
+        "summary": {
+          "description": "Summery of models.",
+          "type": "object",
+          "x-nullable": true,
+          "properties": { 
+            "count": {
+              "description": "Current count of custom models.",
+              "type": "string",
+              "format": "int32",
+              "x-nullable": false
+            },
+            "limit": {
+              "description": "Max number of models that can be created for this subscription.",
+              "type": "string",
+              "format": "int32",
+              "x-nullable": false
+            },
+            "lastUpdatedDateTime": {
+              "format": "date-time",
+              "description": "Get or set the summary last updated datetime.",
+              "type": "string"
+            }
+          }
+        }, 
         "models": {
           "description": "Collection of models.",
           "type": "array",
@@ -733,8 +773,7 @@
         },
         "keys": {
           "$ref": "#/definitions/KeysResult",
-          "description": "Keys extracted by model.",
-          "x-nullable": false
+          "description": "Keys extracted by model."
         },
         "trainResult": {
           "description": "Train batch operation result.",
@@ -790,9 +829,9 @@
         "status": {
           "description": "Status of the training operation.",
           "enum": [
-            "success",
-            "partialSuccess",
-            "failure"
+            "succeeded",
+            "partiallySucceeded",
+            "failed"
           ],
           "type": "string",
           "x-ms-enum": {
