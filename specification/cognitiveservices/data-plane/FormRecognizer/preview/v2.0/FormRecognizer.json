@@ -689,12 +689,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "hints": {
-          "description": "Get or set specifier to retrieve key/value hints.",
-          "type": "boolean",
-          "default": false,
-          "x-nullable": false
         }
       }
     },
