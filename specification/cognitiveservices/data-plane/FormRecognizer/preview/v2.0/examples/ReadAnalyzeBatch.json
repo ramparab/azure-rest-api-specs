@@ -1,0 +1,16 @@
+{
+  "parameters": {
+    "Endpoint": "{Endpoint}",
+    "Content-Type": "application/json",
+    "Ocp-Apim-Subscription-Key": "{API key}",
+    "id": "{Model Id}",
+    "body": {
+      "formData": {}
+    },
+    "form_stream": "{Image or Pdf file stream}"
+  },
+  "responses": {
+    "202": {
+    }
+  }
+}

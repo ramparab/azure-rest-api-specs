@@ -32,7 +32,7 @@
   "paths": {
     "/custom/models": {
       "post": {
-        "summary": "New Custom Model",
+        "summary": "Train Custom Model",
         "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
         "operationId": "TrainCustomModel",
         "consumes": [
@@ -55,7 +55,7 @@
             "headers": {
               "Location": {
                 "type": "string",
-                "description": "Result id used to track the progress of training. The returned id is the train result id, not trained model id. Trained model id can be obtained only when the status in result indicates \"success\" in Status field."
+                "description": "Result id used to track the progress of training. The returned id is the train result id, not trained model id. Trained model id can be obtained only when the status in result indicates \"succeeded\" in Status field."
               }
             }
           },
@@ -207,9 +207,6 @@
         "consumes": [
           "application/json"
         ],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
             "name": "modelId",
@@ -235,7 +232,7 @@
             "headers": {
               "Location": {
                 "type": "string",
-                "description": "Result id to track the progress of analyze operation. Result of analyze operation can be obtained only when the operation status becomes \"success\" in status field."
+                "description": "Result id to track the progress of analyze operation. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in status field."
               }
             }
           },
@@ -285,6 +282,105 @@
             "description": "Success",
             "schema": {
               "$ref": "#/definitions/AnalyzeOperationResult"
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Keys from Model": {
+            "$ref": "./examples/GetOperationResult.json"
+          }
+        }
+      }
+    },
+    "/custom/models/{modelId}/copy": {
+      "post": {
+        "summary": "Copy Model",
+        "description": "Copy model artifacts to target subscription.",
+        "operationId": "CopyCustomModelAsync",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "description": "Model identifier to copy.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "copyRequest",
+            "in": "body",
+            "description": "Request object for copying model.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CopyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Copy request queued successfully.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Result id to track the progress of copy operation. Result of copy operation can be obtained only when the operation status becomes \"succeeded\" in status field."
+              }
+            }
+          },
+          "default": {
+            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Get Model from id": {
+            "$ref": "./examples/CopyBatch.json"
+          }
+        }
+      }
+    },
+    "/custom/models/{modelId}/copyResults/{resultId}": {
+      "get": {
+        "summary": "Get Copy Result",
+        "description": "Retrieve Copy operation status.",
+        "operationId": "GetCopyResult",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "description": "Custom model identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "resultId",
+            "in": "path",
+            "description": "Copy operation result identifier.",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CopyOperationResult"
             }
           },
           "default": {
@@ -412,7 +508,7 @@
         },
         "x-ms-examples": {
           "Get Model from id": {
-            "$ref": "./examples/AnalyzeBatch.json"
+            "$ref": "./examples/ReadAnalyzeBatch.json"
           }
         }
       }
@@ -440,7 +536,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/AnalyzeOperationResult"
+              "$ref": "#/definitions/ReadAnalyzeOperationResult"
             }
           },
           "default": {
@@ -449,7 +545,12 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        }
+        },
+        "x-ms-examples": {
+          "Get Analyze Result": {
+            "$ref": "./examples/ReadAnalyzeResult.json"
+          }
+        }        
       }
     }
   },
@@ -476,7 +577,8 @@
       "enum": [
         "application/pdf",
         "image/jpeg",
-        "image/png"
+        "image/png",
+        "image/tiff"
       ],
       "x-ms-enum": {
         "name": "ContentType",
@@ -1421,13 +1523,165 @@
         "modelAsString": false
       },
       "x-nullable": false
-    },
+    },    
     "Confidence": {
       "description": "Confidence value.",
       "type": "number",
       "minimum": 0,
       "maximum": 1
-    }
+    },
+    "CopyRequest": {
+      "description": "Contract to initiate a copy request.",
+      "type": "object",
+      "properties": {
+        "targetInformation": {
+          "description": "Information about target subscription.",
+          "type": "object",
+          "properties":{
+            "endpoint": {
+              "description": "Get or set enpoint path.",
+              "maxLength": 2048,
+              "minLength": 0,
+              "type": "string"
+            },
+            "resourceId": {
+              "description": "Get or set resource identifier.",
+              "maxLength": 2048,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        },
+        "copyConfig": {
+          "description": "Copy operation options.",
+          "type": "object",
+          "required":[
+            "deleteSource"
+          ],
+          "properties":{
+            "deleteSource": {
+              "description": "Indicate deletion of source model artifacts.",
+              "type":"boolean",
+              "default":false
+            },
+            "supportCrossTenetCopy": {
+              "description": "Indicate copy target tenency requirement.",
+              "type": "boolean",
+              "default":false
+            },
+            "targetModelMetadata": {
+              "description": "Metadata for copied model to Target",
+              "type": "object",
+              "properties":{
+                "name": {
+                  "description": "Name of copied model at Target.",
+                  "maxLength": 128,
+                  "minLength": 0,
+                  "type": "string"
+                },
+                "description": {
+                  "description": "Description of copied model.",
+                  "maxLength": 1024,
+                  "minLength": 0,
+                  "type": "string"
+                },
+                "tags": {
+                  "description": "Tags for copied model",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "CopyResult": {
+      "description": "Results of copy model operation.",
+      "type": "object",
+      "required": [
+        "resourceLocation"
+      ],
+      "properties": {
+        "resourceLocation": {
+          "description": "Target location of copied model",
+          "type": "string"
+        },
+        "errors": {
+          "description": "List of errors reported during copy operation.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FormOperationError"
+          }
+        }        
+      }
+    },
+    "CopyOperationResult": {
+      "description": "Status and result of copy operation.",
+      "type": "object",
+      "required": [
+        "copyResult"
+      ],      
+      "properties": {
+        "status": {
+          "description": "Get status of copy operation.",
+          "$ref": "#/definitions/OperationStatus"
+        },
+        "createdDateTime": {
+          "format": "date-time",
+          "description": "Get date time the copy operation was submitted.",
+          "type": "string",
+          "x-nullable": false
+        },
+        "lastUpdatedDateTime": {
+          "format": "date-time",
+          "description": "Get last status update date time of this copy operation.",
+          "type": "string",
+          "x-nullable": false
+        },
+        "copyResult": {
+          "description": "Copy operation result.",
+          "$ref": "#/definitions/CopyResult"
+        }
+      }
+    },
+    "ReaddocAnalyzeResult": {
+      "description": "Result operation.",
+      "type": "object",     
+      "properties": {
+      }
+    },
+    "ReadAnalyzeOperationResult": {
+      "description": "Status and result of copy operation.",
+      "type": "object",
+      "required": [
+        "readResult"
+      ],      
+      "properties": {
+        "status": {
+          "description": "Get status of copy operation.",
+          "$ref": "#/definitions/OperationStatus"
+        },
+        "createdDateTime": {
+          "format": "date-time",
+          "description": "Get date time the copy operation was submitted.",
+          "type": "string",
+          "x-nullable": false
+        },
+        "lastUpdatedDateTime": {
+          "format": "date-time",
+          "description": "Get last status update date time of this copy operation.",
+          "type": "string",
+          "x-nullable": false
+        },
+        "readResult": {
+          "description": "Get status of copy operation.",
+          "$ref": "#/definitions/ReaddocAnalyzeResult"
+        }
+      }
+    }              
   },
   "parameters": {
     "Endpoint": {
