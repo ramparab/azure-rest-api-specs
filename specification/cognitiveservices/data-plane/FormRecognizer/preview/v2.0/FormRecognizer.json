@@ -217,8 +217,7 @@
           "application/json",
           "image/jpeg",
           "image/png",
-          "image/tiff",
-          "multipart/form-data"
+          "image/tiff"
         ],
         "parameters": [
           {
@@ -238,8 +237,8 @@
             "type": "boolean"
           },
           {
-            "name": "form_stream",
-            "in": "formData",
+            "name": "formStream",
+            "in": "body",
             "description": "A json or pdf document or image (jpg,png,tiff) file to analyze (Max Size: 50MB)",
             "required": true,
             "type": "file"
