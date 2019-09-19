@@ -421,14 +421,22 @@
         "description": "Extract field text and semantic values from a given receipt document.",
         "operationId": "AnalyzeReceiptAsync",
         "consumes": [
-          "application/json"
+          "application/pdf",
+          "application/json",
+          "image/jpeg",
+          "image/png",
+          "image/tiff"
         ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "$ref": "#/parameters/ImageUrl"
+            "name": "formStream",
+            "in": "body",
+            "description": "A json or pdf document or image (jpg,png,tiff) file to analyze (Max Size: 50MB)",
+            "required": true,
+            "type": "file"
           }
         ],
         "responses": {
@@ -569,42 +577,6 @@
             "$ref": "./examples/ReadAnalyzeResult.json"
           }
         }        
-      }
-    }
-  },
-  "x-ms-paths": {
-    "/prebuilt/receipt/analyze?overload=stream": {
-      "post": {
-        "description": "Extract field text and semantic values from a given receipt document.",
-        "operationId": "AnalyzeReceiptInStream",
-        "summary": "Analyze Receipt",
-        "parameters": [
-          {
-            "$ref": "#/parameters/ImageStream"
-          }
-        ],
-        "consumes": [
-          "application/octet-stream"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "201": {
-            "description": "Analyze request queued successfully.",
-            "headers": {
-              "Location": {
-                "type": "string",
-                "description": "Operation location with an operation id used to track the progress of analyze operation. The returned id is the operation id. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
-              }
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Successful 'Analyze Receipt' request": {
-            "$ref": "./examples/SuccessfulAnalyzeReceiptWithStream.json"
-          }
-        }
       }
     }
   },  
@@ -1660,19 +1632,7 @@
           }
         }
       }      
-    },
-    "ImageUrl": {
-      "type": "object",
-      "required": [
-        "url"
-      ],
-      "properties": {
-        "url": {
-          "description": "Publicly reachable URL of an image.",
-          "type": "string"
-        }
-      }
-    }           
+    }   
   },
   "parameters": {
     "Endpoint": {
@@ -1683,28 +1643,6 @@
       "type": "string",
       "in": "path",
       "x-ms-skip-url-encoding": true
-    },
-    "ImageUrl": {
-      "name": "ImageUrl",
-      "in": "body",
-      "required": true,
-      "x-ms-parameter-location": "method",
-      "x-ms-client-flatten": true,
-      "description": "A JSON document with a URL pointing to the image that is to be analyzed.",
-      "schema": {
-        "$ref": "#/definitions/ImageUrl"
-      }
-    },
-    "ImageStream": {
-      "name": "Image",
-      "in": "body",
-      "required": true,
-      "x-ms-parameter-location": "method",
-      "description": "An image stream.",
-      "schema": {
-        "type": "object",
-        "format": "file"
-      }
-    }    
+    }   
   }
 }
