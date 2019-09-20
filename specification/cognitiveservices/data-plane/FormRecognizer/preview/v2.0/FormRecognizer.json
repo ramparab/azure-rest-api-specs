@@ -33,24 +33,16 @@
     "/custom/models": {
       "post": {
         "summary": "Train Custom Model",
-        "description": "Create and train a custom model. The train request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration\r\n setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Subfolders are not supported. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg' and 'image/png'.\"\r\n Other type of content is ignored.",
+        "description": "Create and train a custom model. The request must include a source parameter that is either an externally accessible Azure Storage blob container Uri (preferably a Shared Access Signature Uri) or valid path to a data folder in a locally mounted drive. When local paths are specified, they must follow the Linux/Unix path format and be an absolute path rooted to the input mount configuration setting value e.g., if '{Mounts:Input}' configuration setting value is '/input' then a valid source path would be '/input/contosodataset'. All data to be trained is expected to be directly under the source folder. Models are trained using documents that are of the following content type - 'application/pdf', 'image/jpeg', 'image/png', 'image/tiff'. Other type of content is ignored.",
         "operationId": "TrainCustomModel",
         "consumes": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "useLabelFile",
-            "in": "query",
-            "description": "Get or set specifier to retrieve text results.",
-            "required": false,
-            "default":false,
-            "type": "boolean"
-          },          
-          {
             "name": "trainRequest",
             "in": "body",
-            "description": "Request for training custom model.",
+            "description": "Input for training custom model.",
             "required": true,
             "schema": {
               "$ref": "#/definitions/TrainRequest"
@@ -59,11 +51,11 @@
         ],
         "responses": {
           "201": {
-            "description": "Train request successfully queued.",
+            "description": "Request to train custom model is successfully queued.",
             "headers": {
               "Location": {
                 "type": "string",
-                "description": "Result id used to track the progress of training. The returned id is the train result id, not trained model id. Trained model id can be obtained only when the status in result indicates \"succeeded\" in Status field."
+                "description": "Location and Id of model being trained. Trained model status is specified in Status field in result."
               }
             }
           },
@@ -75,10 +67,10 @@
           }
         },
         "x-ms-examples": {
-          "Train Batch new model example": {
+          "Train new model example": {
             "$ref": "./examples/TrainBatch.json"
           },
-          "Train Batch new model example, subfolder filter options": {
+          "Train new model example, subfolder filter options": {
             "$ref": "./examples/TrainBatchWithSubFolders.json"
           }
         }
@@ -128,7 +120,7 @@
     "/custom/models/{modelId}": {
       "get": {
         "summary": "Get Custom Model",
-        "description": "Get information about a model.",
+        "description": "Get detailed information about a model.",
         "operationId": "GetCustomModel",
         "consumes": [],
         "produces": [
@@ -146,7 +138,7 @@
           {
             "name": "keys",
             "in": "query",
-            "description": "An optional parameter to list extracted keys.",
+            "description": "Include list extracted keys in model information.",
             "required": false,
             "type": "boolean"
           }
@@ -173,7 +165,7 @@
       },
       "delete": {
         "summary": "Delete Model",
-        "description": "Delete model artifacts.",
+        "description": "Delete model artifacts. Model status is marked as tombstoned. Artifacts of tombstoned model are deleted within 48 hours.",
         "operationId": "DeleteCustomModel",
         "consumes": [],
         "produces": [
@@ -183,7 +175,7 @@
           {
             "name": "modelId",
             "in": "path",
-            "description": "The identifier of the model to delete.",
+            "description": "Identifier of the model to delete.",
             "required": true,
             "type": "string",
             "format": "uuid"
@@ -191,7 +183,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Successfully tombstoned model artifacts and will be subsequently removed."
+            "description": "Successfully tombstoned model and its artifacts will be removed within 48 hours."
           },
           "default": {
             "description": "Response entity accompanying non-successful responses containing additional details about the error.",
@@ -210,7 +202,7 @@
     "/custom/models/{modelId}/analyze": {
       "post": {
         "summary": "Analyze Form",
-        "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg' or 'image/png'. A success response is returned in JSON.",
+        "description": "Extract key-value pairs from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg', 'image/png' or 'image/jiff'. Alternatively, use 'application/json' format to specify location (URI or local path) of document to be analyzed.",
         "operationId": "AnalyzeWithCustomModelAsync",
         "consumes": [
           "application/pdf",
@@ -237,11 +229,7 @@
             "type": "boolean"
           },
           {
-            "name": "formStream",
-            "in": "body",
-            "description": "A json or pdf document or image (jpg,png,tiff) file to analyze (Max Size: 50MB)",
-            "required": true,
-            "type": "file"
+            "$ref": "#/parameters/FileStream"
           }
         ],
         "responses": {
@@ -345,7 +333,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Copy request queued successfully.",
+            "description": "Request to copy model artifacts queued successfully.",
             "headers": {
               "Location": {
                 "type": "string",
@@ -370,7 +358,7 @@
     "/custom/models/{modelId}/copyResults/{resultId}": {
       "get": {
         "summary": "Get Copy Result",
-        "description": "Retrieve Copy operation status.",
+        "description": "Retrieve Copy operation result.",
         "operationId": "GetCopyResult",
         "consumes": [],
         "produces": [
@@ -432,16 +420,12 @@
         ],
         "parameters": [
           {
-            "name": "formStream",
-            "in": "body",
-            "description": "A json or pdf document or image (jpg,png,tiff) file to analyze (Max Size: 50MB)",
-            "required": true,
-            "type": "file"
+            "$ref": "#/parameters/FileStream"
           }
         ],
         "responses": {
           "201": {
-            "description": "Analyze request queued successfully.",
+            "description": "Request to analyze receipt queued successfully.",
             "headers": {
               "Location": {
                 "type": "string",
@@ -457,7 +441,7 @@
           }
         },
         "x-ms-examples": {
-          "Get Model from id": {
+          "Analyze receipt": {
             "$ref": "./examples/AnalyzeBatch.json"
           }
         }
@@ -466,8 +450,8 @@
     "/prebuilt/receipt/analyzeResults/{resultId}": {
       "get": {
         "summary": "Get Receipt Result",
-        "description": "Retrieve receipt operation status.",
-        "operationId": "GetReceiptResult",
+        "description": "Retrieve analyze receipt operation result.",
+        "operationId": "GetAnalyzeReceiptOpResult",
         "consumes": [],
         "produces": [
           "application/json"
@@ -497,93 +481,12 @@
           }
         }
       }
-    },
-    "/readdoc/analyze": {
-      "post": {
-        "summary": "DocumentOCR Analyze",
-        "description": "Extract text from a given document.",
-        "operationId": "ReadDocAnalyze",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "form_stream",
-            "in": "formData",
-            "description": "A json or pdf document or image (jpg,png,tiff) file to analyze (Max Size: 50MB)",
-            "required": true,
-            "type": "file"
-          }          
-        ],
-        "responses": {
-          "201": {
-            "description": "Analyze request queued successfully.",
-            "headers": {
-              "Location": {
-                "type": "string",
-                "description": "Operation id used to track the progress of analyze operation. Result of analyze operation can be obtained only when the operation status becomes \"succeeded\" in OperationStatus - Get."
-              }
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Model from id": {
-            "$ref": "./examples/ReadAnalyzeBatch.json"
-          }
-        }
-      }
-    },
-    "/readdoc/analyzeResults/{resultId}": {
-      "get": {
-        "summary": "Get DocumentOCR Result",
-        "description": "Retrieve analyze operation status.",
-        "operationId": "GetReadDocResult",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "resultId",
-            "in": "path",
-            "description": "Analyze operation identifier.",
-            "required": true,
-            "type": "string",
-            "format": "uuid"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ReadAnalyzeOperationResult"
-            }
-          },
-          "default": {
-            "description": "Response entity accompanying non-successful responses containing additional details about the error.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Get Analyze Result": {
-            "$ref": "./examples/ReadAnalyzeResult.json"
-          }
-        }        
-      }
     }
   },  
   "definitions": {
     "OperationStatus": {
       "type": "string",
-      "description": "Status of async operation.",
+      "description": "Status of queued operation.",
       "enum": [
         "notStarted",
         "running",
@@ -596,49 +499,34 @@
       },
       "x-nullable": false
     },
-    "ContentType": {
-      "type": "string",
-      "description": "Supported content-type.",
-      "enum": [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/tiff"
-      ],
-      "x-ms-enum": {
-        "name": "ContentType",
-        "modelAsString": false
-      },
-      "x-nullable": false
-    },
     "AnalyzeOperationResult": {
-      "description": "Status and result of batch operation.",
+      "description": "Status and result of queued analyze operation.",
       "type": "object",
       "properties": {
         "status": {
-          "description": "Get status of batch operation.",
+          "description": "Get or set status of operation.",
           "$ref": "#/definitions/OperationStatus"
         },
         "createdDateTime": {
           "format": "date-time",
-          "description": "Get date time the batch operation was submitted.",
+          "description": "Get date and time (UTC) the batch operation was submitted.",
           "type": "string",
           "x-nullable": false
         },
         "lastUpdatedDateTime": {
           "format": "date-time",
-          "description": "Get last updated date time of this batch operation.",
+          "description": "Get last updated date and time (UTC) of this operation.",
           "type": "string",
           "x-nullable": false
         },
         "analyzeResult": {
-          "description": "Analyze batch operation result.",
+          "description": "Results of Analyze operation.",
           "$ref": "#/definitions/AnalyzeResult"
         }
       }
     },
     "TrainRequest": {
-      "description": "Contract to initiate a train request.",
+      "description": "Request parameter to train new model.",
       "required": [
         "source"
       ],
@@ -646,9 +534,7 @@
       "properties": {
         "source": {
           "description": "Get or set source path.",
-          "maxLength": 2048,
-          "minLength": 0,
-          "type": "string"
+          "$ref": "#/definitions/SourcePath"
         },
         "sourceFilter": {
           "$ref": "#/definitions/TrainSourceFilter",
@@ -656,27 +542,15 @@
         }
       }
     },
-    "AnalyzeJsonInputConfig": {
-      "description": "Analyze json request parameter.",
-      "type": "object",      
-      "properties": {
-        "source": {
-          "description": "Get or set source path to file to score.",
-          "maxLength": 2048,
-          "minLength": 0,
-          "type": "string"
-        }
-      }
-    },
     "TrainSourceFilter": {
-      "description": "Filters to be applied when traversing a data source.",
+      "description": "Filters to be applied when traversing data source.",
       "type": "object",
       "required": [
         "prefix"
       ],
       "properties": {
         "prefix": {
-          "description": "A case-sensitive prefix string to filter content\r\nunder the source location. For e.g., when using a Azure Blob\r\nUri use the prefix to restrict subfolders for content.",
+          "description": "A case-sensitive prefix string to filter content under the source location. For e.g., when using a Azure Blob Uri use the prefix to restrict subfolders for content.",
           "maxLength": 128,
           "minLength": 0,
           "type": "string"
@@ -740,6 +614,22 @@
         }
       }
     },
+    "SourcePath": {
+      "description": "URI or local path to source data.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Get or set source path to file to score.",
+          "maxLength": 2048,
+          "minLength": 0,
+          "type": "string"
+        }
+      }
+    },
+    "SourceDataStream": {
+      "description": "A pdf document or image (jpg,png,tiff) file to analyze.",
+      "type":"object"
+    },  
     "Models": {
       "description": "Result of query operation to fetch multiple models.",
       "type": "object",
@@ -1604,35 +1494,7 @@
           "$ref": "#/definitions/CopyResult"
         }
       }
-    },
-    "ReadAnalyzeOperationResult": {
-      "description": "Analyze API call result.",
-      "type": "object",
-      "required": [
-        "version",
-        "readResults"
-      ],
-      "properties": {
-        "version": {
-          "description": "Version of schema used for this result.",
-          "type": "string"
-        },
-        "readResults": {
-          "description": "Text extracted from the input.",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReadResult"
-          }
-        },
-        "errors": {
-          "description": "List of errors reported during the analyze\r\noperation.",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/FormOperationError"
-          }
-        }
-      }      
-    }   
+    }
   },
   "parameters": {
     "Endpoint": {
@@ -1643,6 +1505,15 @@
       "type": "string",
       "in": "path",
       "x-ms-skip-url-encoding": true
-    }   
+    },
+    "FileStream": {
+      "name": "FileStream",
+      "description": ".json, .pdf, .jpg, .png or .tiff type file stream.",
+      "x-ms-parameter-location": "method",
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/SourceDataStream"
+      }
+    }
   }
 }
