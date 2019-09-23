@@ -496,6 +496,7 @@ featurized
 Featurizer
 feedbacktype
 FHIR
+filegroup
 filepath
 fileserver
 fileservers
@@ -554,6 +555,7 @@ globalconfiguration
 Gloo
 gluster
 glusterfs
+GOARCH
 GPUs
 Grammarly
 GRANTACE
@@ -801,6 +803,7 @@ maximumblobsize
 maxmemory
 maxpagesize
 maxresults
+MAXSIZE
 mbaldwin
 Mbps
 MCAS
@@ -917,6 +920,7 @@ nostore
 notificationchannels
 notificationhubs
 notstarted
+nouploadcache
 nsdname
 nsku
 ntext
@@ -944,6 +948,7 @@ oobe
 Oozie
 openapi
 opencode
+opencontainers
 openid
 operationalinsights
 Operationalization
@@ -1076,9 +1081,9 @@ quniform
 quotametrics
 quotastatus
 racyscore
-randint
 RAGRS
 RAGZRS
+randint
 Rankable
 ravbhatnagar
 rawxml
@@ -1215,6 +1220,7 @@ scalesets
 scanability
 SCMS
 SCOM
+scopemap
 SCSV
 sdks
 searchindex
@@ -1283,8 +1289,8 @@ smalldatetime
 smallint
 smallmoney
 SMBIOS
-snapshotsdr
 snapshotrun
+snapshotsdr
 SNAT
 softwareplan
 SOHSV
@@ -1300,6 +1306,7 @@ southeastasia
 southindia
 sparkconf
 sparql
+SPDX
 SQLAG
 SQLDB
 SQLMI
@@ -1390,6 +1397,7 @@ tableservices
 tabletypes
 tablevaluedfunctions
 tagname
+tagsandregions
 tagvalue
 taskcompletion
 taskcounts
@@ -1431,6 +1439,7 @@ translatortext
 trendingtopics
 triggeredwebjobs
 triggerruns
+TSVE
 Turbonomic
 Txns
 Typeless
@@ -1481,6 +1490,7 @@ Unprovisions
 Unpublish
 Unregistering
 Unregisters
+unrestorable
 unsubstituted
 untagged
 Untracked
@@ -1531,6 +1541,7 @@ visualsearch
 visualstudio
 vlan
 vlanid
+Vldb
 VM's
 vmextension
 VMILR
