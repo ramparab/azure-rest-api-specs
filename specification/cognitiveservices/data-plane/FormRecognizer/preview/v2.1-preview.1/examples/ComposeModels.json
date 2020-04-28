@@ -5,7 +5,8 @@
     "Ocp-Apim-Subscription-Key": "{API key}",
     "body": {},
     "composeRequest": {
-      "ModelsIds": ["ModelA", "ModelB"]
+      "modelIds": [ "ModelA", "ModelB" ],
+      "modelName": "CollectionName"
     }
   },
   "responses": {
