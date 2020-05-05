@@ -1346,6 +1346,7 @@
     },
     "DocumentResult": {
       "description": "A set of extracted fields corresponding to the input document.",
+      "type": "object",
       "required": [
         "docType",
         "pageRange",
