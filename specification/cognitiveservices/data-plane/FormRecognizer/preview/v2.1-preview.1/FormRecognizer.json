@@ -458,7 +458,7 @@
           "Form"
         ],
         "summary": "Compose trained with labels models into one composed model.",
-        "description": "Compose request would include list of models ids.\r\nIt would validate what all models either trained with labels model or composed model.\r\nIt would validate limit of models put together.",
+        "description": "Compose request would include list of models ids.\r\nIt would validate that all models are either trained with labels or are composed models.\r\nIt would validate limit of models put together.",
         "operationId": "CustomModelsComposePost",
         "consumes": [],
         "produces": [
