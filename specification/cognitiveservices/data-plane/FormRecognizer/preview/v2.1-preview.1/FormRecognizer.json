@@ -1715,6 +1715,7 @@
       "description": "A set of extracted fields corresponding to the input document.",
       "required": [
         "docType",
+        "modelId",
         "pageRange",
         "fields"
       ],
@@ -1723,6 +1724,10 @@
           "description": "Document type.",
           "type": "string"
         },
+        "modelId": {
+          "description": "Id of individual model used for prediction.",
+          "type": "string"
+        }
         "pageRange": {
           "description": "First and last page number where the document is found.",
           "type": "array",
