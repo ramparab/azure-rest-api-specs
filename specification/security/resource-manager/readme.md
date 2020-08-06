@@ -41,8 +41,15 @@ directive:
     from: alertTypes.json
     where: '$.paths["/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/iotSecuritySolutions/{solutionName}/alertTypes"].get'
     reason: The list returns limited number of items
+<<<<<<< HEAD
 =======
 >>>>>>> 4ea1e0abb0265a95f3f49494d2f0815b6be6d7d6
+=======
+  - suppress: PageableOperation
+    from: recommendationTypes.json
+    where: '$.paths["/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/iotSecuritySolutions/{solutionName}/recommendationTypes"].get'
+    reason: The list returns limited number of items
+>>>>>>> db262fd6b6a4a84113e6a253647deff0105d52ef
 ```
 
 ### Basic Information
@@ -161,8 +168,13 @@ input-file:
 <<<<<<< HEAD
 - Microsoft.Security/stable/2019-08-01/iotAlertTypes.json
 - Microsoft.Security/stable/2019-08-01/iotAlerts.json
+<<<<<<< HEAD
 =======
 >>>>>>> 4ea1e0abb0265a95f3f49494d2f0815b6be6d7d6
+=======
+- Microsoft.Security/stable/2019-08-01/iotRecommendationTypes.json
+- Microsoft.Security/stable/2019-08-01/iotRecommendations.json
+>>>>>>> db262fd6b6a4a84113e6a253647deff0105d52ef
 - Microsoft.Security/preview/2015-06-01-preview/locations.json
 - Microsoft.Security/preview/2015-06-01-preview/operations.json
 - Microsoft.Security/preview/2015-06-01-preview/tasks.json
@@ -363,6 +375,8 @@ input-file:
 <<<<<<< HEAD
 - Microsoft.Security/stable/2019-08-01/iotAlertTypes.json
 - Microsoft.Security/stable/2019-08-01/iotAlerts.json
+- Microsoft.Security/stable/2019-08-01/iotRecommendationTypes.json
+- Microsoft.Security/stable/2019-08-01/iotRecommendations.json
 
 # Needed when there is more than one input file
 override-info:
@@ -510,8 +524,13 @@ input-file:
 <<<<<<< HEAD
   - $(this-folder)/Microsoft.Security/stable/2019-08-01/iotAlertTypes.json
   - $(this-folder)/Microsoft.Security/stable/2019-08-01/iotAlerts.json
+<<<<<<< HEAD
 =======
 >>>>>>> 4ea1e0abb0265a95f3f49494d2f0815b6be6d7d6
+=======
+  - $(this-folder)/Microsoft.Security/stable/2019-08-01/iotRecommendationTypes.json
+  - $(this-folder)/Microsoft.Security/stable/2019-08-01/iotRecommendations.json
+>>>>>>> db262fd6b6a4a84113e6a253647deff0105d52ef
   - $(this-folder)/Microsoft.Security/stable/2020-01-01/serverVulnerabilityAssessments.json
   - $(this-folder)/Microsoft.Security/stable/2020-01-01/assessmentMetadata.json
   - $(this-folder)/Microsoft.Security/stable/2020-01-01/assessments.json
