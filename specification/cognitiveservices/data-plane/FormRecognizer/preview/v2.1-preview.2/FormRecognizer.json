@@ -772,7 +772,7 @@
     "/layout/analyze": {
       "post": {
         "summary": "Analyze Layout",
-        "description": "Extract text and layout information from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg', 'image/png', 'image/tiff' or 'image/bmp'. Alternatively, use 'application/json' type to specify the location (Uri or local path) of the document to be analyzed.",
+        "description": "Extract text and layout information from a given document. The input document must be of one of the supported content types - 'application/pdf', 'image/jpeg', 'image/png', 'image/tiff', 'image/bmp' or 'application/octet-stream'. Alternatively, use 'application/json' type to specify the location (Uri or local path) of the document to be analyzed.",
         "operationId": "AnalyzeLayoutAsync",
         "consumes": [
         ],
@@ -790,7 +790,7 @@
             "required": false,
             "type": "string",
 	    "pattern": "^\d+(-\d+)?$"
-          }	  
+          }
         ],
         "responses": {
           "202": {
