@@ -125,7 +125,19 @@
         "produces": [
           "application/json"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "op",
+            "in": "query",
+            "description": "Summary or full list of models to be returned.",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "models",
+              "summary"
+            ]
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -408,6 +420,31 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/ModelResult"
+          },
+          "x-nullable": true
+        },
+        "summary": {
+          "description": "Result of query operation to fetch summery of models.",
+          "type": "object",
+          "x-nullable": true,
+          "properties": { 
+            "count": {
+              "description": "Current count of trained models.",
+              "type": "string",
+              "format": "int32",
+              "x-nullable": false
+            },
+            "limit": {
+              "description": "Max number of models that can be trained for this subscription.",
+              "type": "string",
+              "format": "int32",
+              "x-nullable": false
+            },
+            "lastUpdatedDateTime": {
+              "format": "date-time",
+              "description": "Get or set the summary last updated datetime.",
+              "type": "string"
+            }
           }
         }
       }
